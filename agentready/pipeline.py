@@ -55,6 +55,7 @@ class RunOptions:
 class RunState:
     id: str
     options: dict
+    owner: str = ""  # the account that started it; only that account sees it
     created: float = field(default_factory=time.time)
     status: str = "queued"
     stage: str = ""

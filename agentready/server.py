@@ -36,7 +36,7 @@ STATIC = {
     "/icon-192.png": "image/png",
     "/icon-512.png": "image/png",
 }
-PAGES = ("/", "/index.html", "/welcome", "/verify", "/history", "/stats", "/settings", "/login", "/pair")
+PAGES = ("/", "/index.html", "/welcome", "/join", "/verify", "/history", "/stats", "/settings", "/login", "/pair")
 COOKIE = "ar_session"
 # the page loads only its own code and the QR library; it can't be framed (clickjacking)
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
@@ -50,8 +50,14 @@ ACTIVITY: deque = deque(maxlen=200)
 
 
 def log_activity(kind: str, msg: str, device: dict | None = None, ref: str = "") -> None:
-    ACTIVITY.append({"ts": time.time(), "kind": kind, "msg": msg, "ref": ref,
+    ACTIVITY.append({"ts": time.time(), "kind": kind, "msg": msg, "ref": ref, "user": (device or {}).get("user", ""),
                      "device_id": (device or {}).get("id", ""), "device": (device or {}).get("device", "")})
+
+
+def signup_open() -> bool:
+    # anyone may create an account (each still sees only their own runs); off by default because
+    # every account can make this server run the tests of a repo it chooses
+    return os.environ.get("AGENTREADY_SIGNUP") == "open"
 
 
 def resolve_source(source: str, public: bool) -> str:
@@ -141,6 +147,14 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return me
 
+    def _mine(self, record: dict | None, me: dict | None) -> bool:
+        """Does this run / verification belong to the signed-in account? (Public demo: shared.)"""
+        if record is None:
+            return False
+        if me is None:
+            return True
+        return (record.get("owner") or self.auth.owner()) == me["user"]
+
     def _token_ok(self) -> bool:
         # public demo only: starting things needs the shared access token
         token = os.environ.get("AGENTREADY_ACCESS_TOKEN")
@@ -199,6 +213,7 @@ class Handler(BaseHTTPRequestHandler):
             me = None if is_public() else self._me()
             return self._json({"accounts": not is_public(), "has_users": self.auth.has_users(),
                                "setup_code_needed": not self.auth.has_users() and not self._local(),
+                               "signup": "open" if signup_open() or self._local() else "invite",
                                "user": me and me["user"], "device_id": me and me["id"], "device": me and me["device"]})
         m = re.fullmatch(r"/api/runs/([\w-]+)/badge\.svg", path)
         if m:  # badges are embedded in READMEs, so they stay public
@@ -214,14 +229,15 @@ class Handler(BaseHTTPRequestHandler):
                                "base_url": base, "reachable": reachable, "lan_url": self.lan_url})
         if path == "/api/activity":
             since = float((parse_qs(url.query).get("since") or ["0"])[0] or 0)
-            return self._json({"now": time.time(), "items": [a for a in ACTIVITY if a["ts"] > since]})
+            return self._json({"now": time.time(), "items": [a for a in ACTIVITY if a["ts"] > since
+                                                             and (me is None or a["user"] == me["user"])]})
         if path == "/api/runs":
             out = []
             root = Path(self.settings.runs_dir)
             if root.exists():
                 for d in sorted(root.iterdir(), reverse=True)[:60]:
                     run = self._load_run(d.name)
-                    if not run:
+                    if not self._mine(run, me):
                         continue
                     m2 = run.get("metrics") or {}
                     out.append({"id": run["id"], "source": run["options"]["source"], "status": run["status"],
@@ -230,19 +246,24 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(out)
         if path == "/api/verify":
             items = []
-            for f in sorted(self._verify_dir().glob("*.json"), reverse=True)[:60]:
+            for f in sorted(self._verify_dir().glob("*.json"), reverse=True)[:200]:
                 v = json.loads(f.read_text(encoding="utf-8"))
+                if not self._mine(v, me):
+                    continue
+                if len(items) >= 60:
+                    break
                 items.append({k: v.get(k) for k in ("id", "source", "status", "created", "score", "files")})
             return self._json(items)
         m = re.fullmatch(r"/api/verify/([\w-]+)", path)
         if m:
             f = self._verify_dir() / f"{m.group(1)}.json"
-            return self._json(json.loads(f.read_text(encoding="utf-8"))) if f.exists() else \
-                self._json({"error": "verification not found"}, 404)
+            v = json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+            # someone else's: answer exactly as if it didn't exist
+            return self._json(v) if self._mine(v, me) else self._json({"error": "verification not found"}, 404)
         m = re.fullmatch(r"/api/runs/([\w-]+)(/agents\.md)?", path)
         if m:
             run = self._load_run(m.group(1))
-            if not run:
+            if not self._mine(run, me):
                 return self._json({"error": "run not found"}, 404)
             if m.group(2):
                 return self._send(200, (run.get("agents_md") or "").encode(), "text/markdown; charset=utf-8",
@@ -269,9 +290,10 @@ class Handler(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/verify/([\w-]+)", path)
         if m:
             f = self._verify_dir() / f"{m.group(1)}.json"
-            if not f.exists():
+            v = json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+            if not self._mine(v, me):
                 return self._json({"error": "verification not found"}, 404)
-            if json.loads(f.read_text(encoding="utf-8")).get("status") == "running":
+            if v.get("status") == "running":
                 return self._json({"error": "this verification is still running"}, 409)
             f.unlink()
             return self._json({"deleted": m.group(1)})
@@ -279,6 +301,8 @@ class Handler(BaseHTTPRequestHandler):
         if not m:
             return self._json({"error": "not found"}, 404)
         rid = m.group(1)
+        if not self._mine(self._load_run(rid), me):
+            return self._json({"error": "run not found"}, 404)
         with _lock:
             p = ACTIVE.get(rid)
             if p is not None and p.state.status in ("queued", "running"):
@@ -304,7 +328,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._erase(body)
 
         cancel = re.fullmatch(r"/api/runs/([\w-]+)/cancel", path)
-        if path not in ("/api/runs", "/api/verify", "/api/pair") and not cancel:
+        if path not in ("/api/runs", "/api/verify", "/api/pair", "/api/invite") and not cancel:
             return self._json({"error": "not found"}, 404)
         if not self._token_ok():
             return self._json({"error": "access token required to start runs"}, 401)
@@ -313,12 +337,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         public = is_public()
         # runs execute the cloned repo's tests: on the public demo only token holders may start or stop them
-        if public and path != "/api/pair" and not os.environ.get("AGENTREADY_ACCESS_TOKEN"):
+        if public and path not in ("/api/pair", "/api/invite") and not os.environ.get("AGENTREADY_ACCESS_TOKEN"):
             return self._json({"error": "starting runs needs an access token on this public demo"}, 403)
         if cancel:
             with _lock:
                 p = ACTIVE.get(cancel.group(1))
-            if p is None or p.state.status not in ("queued", "running"):
+            if p is None or not self._mine({"owner": p.state.owner}, me):
+                return self._json({"error": "run not found"}, 404)
+            if p.state.status not in ("queued", "running"):
                 return self._json({"error": "this run is not in progress"}, 409)
             p.cancel()
             log_activity("run_done", f"stopped an agent test: {p.opts.label}", me, f"/run/{p.state.id}")
@@ -330,6 +356,12 @@ class Handler(BaseHTTPRequestHandler):
             code = self.auth.pair_code(me["user"])
             return self._json({"code": code, "url": f"{base}/pair?code={code}", "reachable": reachable,
                                "expires_in": 300})
+        if path == "/api/invite":
+            if not me:
+                return self._json({"error": "invites need accounts (not available on the public demo)"}, 400)
+            base, _ = self._base_url()
+            code = self.auth.invite_code(me["user"])
+            return self._json({"code": code, "url": f"{base}/join?code={code}", "expires_in": 24 * 3600})
         if path == "/api/verify":
             return self._start_verify(body, public, me)
         return self._start_run(body, public, me)
@@ -345,8 +377,12 @@ class Handler(BaseHTTPRequestHandler):
                 code = str(body.get("setup_code", "")).strip()
                 if not self._local() and not (self.setup_code and hmac.compare_digest(code, self.setup_code)):
                     return self._json({"error": "enter the setup code shown in the AgentReady console"}, 403)
-                self.auth.setup(body.get("username", ""), body.get("password", ""))
-                token = self.auth.login(body.get("username", ""), body.get("password", ""), ua, self._ip())
+                user = self.auth.setup(body.get("username", ""), body.get("password", ""))
+                token = self.auth.login(user, body.get("password", ""), ua, self._ip())
+            elif path == "/api/auth/signup":
+                user = self.auth.signup(body.get("username", ""), body.get("password", ""),
+                                        str(body.get("invite", "")), allowed=signup_open() or self._local())
+                token = self.auth.login(user, body.get("password", ""), ua, self._ip())
             elif path == "/api/auth/login":
                 token = self.auth.login(body.get("username", ""), body.get("password", ""), ua, self._ip())
             elif path == "/api/auth/claim":
@@ -361,33 +397,43 @@ class Handler(BaseHTTPRequestHandler):
         except PermissionError as exc:
             return self._json({"error": str(exc)}, 401)
         me = self.auth.session(token)
-        log_activity("device", "paired" if path.endswith("claim") else "signed in", me)
+        log_activity("device", {"claim": "paired", "signup": "created the account"}.get(path.rsplit("/", 1)[1], "signed in"), me)
         self._json({"user": me["user"], "device_id": me["id"]}, extra=self._cookie(token, SESSION_DAYS * 86400))
 
     def _erase(self, body: dict) -> None:
-        """Delete everything this server stores: runs, verifications, the account and all devices."""
+        """Delete this account's runs, verifications, devices and the account itself. Other accounts stay."""
         if is_public():
             return self._json({"error": "nothing to erase on the public demo"}, 400)
         me = self._gate()
         if me is False:
             return
+        user = me["user"]
         with _lock:
-            if any(p.state.status in ("queued", "running") for p in ACTIVE.values()):
+            if any(p.state.status in ("queued", "running") and self._mine({"owner": p.state.owner}, me)
+                   for p in ACTIVE.values()):
                 return self._json({"error": "stop the run in progress first"}, 409)
-            try:
-                self.auth.erase(me["user"], str(body.get("password", "")), self._ip())
-            except PermissionError as exc:
-                return self._json({"error": str(exc)}, 401)
-            ACTIVE.clear()
+        # which runs and checks are this account's: decided before the account (and maybe ownership) goes
         root = Path(self.settings.runs_dir)
-        for d in root.iterdir():
-            if d.name == "_auth":
-                continue
-            shutil.rmtree(d, ignore_errors=True) if d.is_dir() else d.unlink(missing_ok=True)
-        ACTIVITY.clear()
-        # the server is unclaimed again: a code that was printed (and maybe seen) before must not claim it
-        Handler.setup_code = secrets.token_urlsafe(9)
-        print(f"All data erased. Creating an account from another device needs this new setup code: {Handler.setup_code}")
+        runs = [d for d in root.iterdir() if d.is_dir() and not d.name.startswith("_") and self._mine(self._load_run(d.name), me)]
+        checks = [f for f in self._verify_dir().glob("*.json")
+                  if self._mine(json.loads(f.read_text(encoding="utf-8")), me)]
+        try:
+            self.auth.erase(user, str(body.get("password", "")), self._ip())
+        except PermissionError as exc:
+            return self._json({"error": str(exc)}, 401)
+        with _lock:
+            for d in runs:
+                ACTIVE.pop(d.name, None)
+        for d in runs:
+            shutil.rmtree(d, ignore_errors=True)
+        for f in checks:
+            f.unlink(missing_ok=True)
+        for a in [a for a in ACTIVITY if a["user"] == user]:
+            ACTIVITY.remove(a)
+        if not self.auth.has_users():
+            # the server is unclaimed again: a code that was printed (and maybe seen) before must not claim it
+            Handler.setup_code = secrets.token_urlsafe(9)
+            print(f"No accounts left. Creating one from another device needs this new setup code: {Handler.setup_code}")
         self._json({"erased": True}, extra=self._cookie("", 0))
 
     def _start_verify(self, body: dict, public: bool, me: dict | None) -> None:
@@ -405,6 +451,7 @@ class Handler(BaseHTTPRequestHandler):
         label = raw[:200] or (", ".join(files[:3]) if files else "Code snippet")
         state = {"id": vid, "source": label, "status": "running", "created": time.time(),
                  "checks": [], "files": [], "score": None, "error": "", "device": (me or {}).get("device", ""),
+                 "owner": (me or {}).get("user", ""),
                  "patch": patch[:200_000]}
         lock = threading.Lock()
 
@@ -454,6 +501,7 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:
             return self._json({"error": str(exc)}, 400)
         pipe = Pipeline(self.settings, llm, opts)
+        pipe.state.owner = (me or {}).get("user", "")
         with _lock:
             ACTIVE[pipe.state.id] = pipe
         pipe.save(force=True)

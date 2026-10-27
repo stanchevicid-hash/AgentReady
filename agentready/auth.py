@@ -1,8 +1,10 @@
 """Login, sessions and device pairing (stdlib only).
 
-One owner account per AgentReady server. Every browser that signs in is a "device"; a signed-in
-device can show a one-time pairing code (as a QR) that signs another device (a phone) in without
-typing the password. Session tokens are only stored hashed.
+Accounts are emails (or plain usernames). The first account owns the server; more people join on
+this computer or with a one-time invite from an existing account (or freely when sign-up is open).
+Each account sees only its own runs. Every browser that signs in is a "device"; a signed-in device can
+show a one-time pairing code (as a QR) that signs another device (a phone) into the same account.
+Session tokens are only stored hashed.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from pathlib import Path
 PBKDF2_ROUNDS = 200_000
 SESSION_DAYS = 30
 PAIR_SECONDS = 300
+INVITE_SECONDS = 24 * 3600
 MAX_FAILS, LOCK_SECONDS = 8, 300
 
 
@@ -47,6 +50,7 @@ class Auth:
         self.file = self.root / "auth.json"
         self._lock = threading.Lock()
         self._pair: dict[str, dict] = {}       # code -> {user, expires}
+        self._invites: dict[str, dict] = {}    # code -> {by, expires}
         self._fails: dict[str, list] = {}      # ip -> [count, locked_until]
         self.data = json.loads(self.file.read_text(encoding="utf-8")) if self.file.exists() else \
             {"users": {}, "sessions": {}}
@@ -60,18 +64,56 @@ class Auth:
     def has_users(self) -> bool:
         return bool(self.data["users"])
 
-    def setup(self, username: str, password: str) -> None:
-        username = (username or "").strip()
-        if not re.fullmatch(r"[\w.@-]{2,40}", username):
-            raise ValueError("username: 2-40 letters, digits, . _ - @")
+    def owner(self) -> str:
+        """The first account. Runs saved before accounts were separate belong to it."""
+        return self.data.get("owner") or next(iter(self.data["users"]), "")
+
+    def _find(self, username: str) -> str | None:
+        name = (username or "").strip().lower()
+        return next((u for u in self.data["users"] if u.lower() == name), None)
+
+    def _add_user(self, username: str, password: str) -> str:
+        username = (username or "").strip().lower()
+        if not re.fullmatch(r"[\w.+@-]{2,80}", username):
+            raise ValueError("enter an email (or a username: letters, digits, . _ - + @)")
         if len(password or "") < 8:
             raise ValueError("password must be at least 8 characters")
+        if self._find(username):
+            raise ValueError("an account with this email already exists; sign in instead")
+        salt = secrets.token_bytes(16)
+        self.data["users"][username] = {"salt": salt.hex(), "hash": _hash_pw(password, salt), "created": time.time()}
+        return username
+
+    def setup(self, username: str, password: str) -> str:
         with self._lock:
             if self.data["users"]:
                 raise ValueError("an account already exists; sign in instead")
-            salt = secrets.token_bytes(16)
-            self.data["users"][username] = {"salt": salt.hex(), "hash": _hash_pw(password, salt), "created": time.time()}
+            user = self._add_user(username, password)
+            self.data["owner"] = user
             self._save()
+            return user
+
+    def signup(self, username: str, password: str, invite: str = "", allowed: bool = False) -> str:
+        """A new, separate account. Needs a valid one-time invite unless the server allows sign-up."""
+        with self._lock:
+            if not self.data["users"]:
+                raise ValueError("no owner yet: create the first account")
+            inv = self._invites.get(invite or "")
+            if not allowed and (not inv or inv["expires"] < time.time()):
+                raise PermissionError("you need an invite: ask someone with an account for an invite link")
+            user = self._add_user(username, password)
+            if not allowed:
+                self._invites.pop(invite, None)  # one use
+            self._save()
+            return user
+
+    def invite_code(self, by: str) -> str:
+        code = secrets.token_urlsafe(12)
+        with self._lock:
+            now = time.time()
+            self._invites = {c: i for c, i in self._invites.items() if i["expires"] > now}
+            self._invites[code] = {"by": by, "expires": now + INVITE_SECONDS}
+        return code
 
     # ------------------------------------------------------------ sessions
     def _new_session(self, user: str, ua: str, via: str) -> str:
@@ -86,7 +128,8 @@ class Auth:
         count, until = self._fails.get(ip, [0, 0])
         if until > time.time():
             raise PermissionError(f"too many attempts, try again in {int(until - time.time())} s")
-        u = self.data["users"].get((username or "").strip())
+        found = self._find(username)
+        u = self.data["users"].get(found) if found else None
         # hash even for an unknown name, so response time doesn't tell which usernames exist
         salt = bytes.fromhex(u["salt"]) if u else b"\0" * 16
         ok = hmac.compare_digest(u["hash"] if u else "", _hash_pw(password or "", salt)) and u is not None
@@ -100,8 +143,8 @@ class Auth:
     def login(self, username: str, password: str, ua: str, ip: str) -> str:
         with self._lock:
             if not self._check(username, password, ip):
-                raise PermissionError("wrong username or password")
-            return self._new_session(username.strip(), ua, "password")
+                raise PermissionError("wrong email or password")
+            return self._new_session(self._find(username), ua, "password")
 
     def session(self, token: str | None) -> dict | None:
         if not token:
@@ -140,12 +183,17 @@ class Auth:
         return False
 
     def erase(self, user: str, password: str, ip: str) -> None:
-        """Delete the account and every session (the right to have your data erased)."""
+        """Delete this account and its sessions (the right to have your data erased). Others stay."""
         with self._lock:
             if not self._check(user, password, ip):
                 raise PermissionError("wrong password")
-            self.data = {"users": {}, "sessions": {}}
-            self._pair.clear()
+            was_owner = self.owner() == user
+            self.data["users"].pop(user, None)
+            self.data["sessions"] = {k: s for k, s in self.data["sessions"].items() if s["user"] != user}
+            self._pair = {c: p for c, p in self._pair.items() if p["user"] != user}
+            self._invites = {c: i for c, i in self._invites.items() if i["by"] != user}
+            if was_owner:
+                self.data["owner"] = next(iter(self.data["users"]), "")
             self._save()
 
     # ------------------------------------------------------------ pairing
