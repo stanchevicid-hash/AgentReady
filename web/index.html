@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AgentReady</title>
 <meta name="description" content="Measure, fix and prove how well AI coding agents work in your repo, and verify code an AI wrote.">
-<meta name="theme-color" content="#18213A">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B2335" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/icon-180.png">
@@ -277,6 +278,21 @@ dialog::backdrop{background:rgba(24,33,58,.45)}
 #app:focus{outline:none}
 #qr{background:#fff;padding:10px;border-radius:8px;display:inline-block}
 
+/* ---------- app feel on phones and PCs ---------- */
+html{-webkit-tap-highlight-color:transparent}
+nav.side,nav.tabs,.mobilehead,.subtabs,.btn,.tab,.seg{-webkit-user-select:none;user-select:none}
+.offline-bar{display:none;position:sticky;left:0;right:0;top:0;z-index:40;padding:6px 12px;padding-top:max(6px,env(safe-area-inset-top));
+  text-align:center;font-size:13px;font-weight:600;background:var(--warn);color:var(--sheet)}
+body.offline .offline-bar{display:block}
+body.offline .mobilehead{top:calc(30px + env(safe-area-inset-top))}
+.iconbtn{border:0;background:transparent;color:inherit;width:44px;height:44px;display:grid;place-items:center;border-radius:10px;cursor:pointer}
+.iconbtn:active{background:var(--paper)}
+.keys{display:flex;gap:6px 14px;flex-wrap:wrap;padding:8px 14px 12px;border-top:1px solid var(--rule);font-size:12px;color:var(--ink-3)}
+@media (pointer:coarse){
+  .tab,.btn.small,.seg button,.subtabs button,button.chip{min-height:44px}
+  .lane{min-height:44px}
+}
+
 /* ---------- motion + loading ---------- */
 #app > *{animation:rise .28s ease-out both}
 #app > *:nth-child(2){animation-delay:.04s} #app > *:nth-child(3){animation-delay:.08s} #app > *:nth-child(4){animation-delay:.12s}
@@ -335,6 +351,13 @@ kbd{font:600 11px var(--mono);padding:2px 6px;border:1px solid var(--rule);borde
   .mobilehead{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));position:sticky;top:0;z-index:10;background:var(--sheet);border-bottom:1px solid var(--rule)}
   .mobilehead .mark{padding:0;font-size:19px}
   .mobilehead .chips{margin-left:auto}
+  /* 16px+ fields: iOS zooms the page into anything smaller */
+  input,textarea,select{font-size:16px!important}
+  /* run actions: one swipeable row instead of three rows of buttons */
+  .runhead .actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}
+  .runhead .actions::-webkit-scrollbar{display:none}
+  .runhead .actions .btn{flex:none}
+  .toast{bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom))}
   main.content{padding:0 16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom))}
   nav.tabs{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--sheet);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom)}
   nav.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:var(--nav-h);font-size:11px;font-weight:600;color:var(--ink-3);text-decoration:none}
@@ -372,16 +395,17 @@ kbd{font:600 11px var(--mono);padding:2px 6px;border:1px solid var(--rule);borde
 </head>
 <body>
 <a class="skip" href="#app">Skip to content</a>
+<div class="offline-bar" role="status" id="offbar"></div>
 <div class="shell">
   <nav class="side" id="side" aria-label="Main"></nav>
   <div>
-    <header class="mobilehead"><a class="mark" href="/" data-nav>LOGO AgentReady</a><div class="chips" id="mchips"></div></header>
+    <header class="mobilehead"><a class="mark" href="/" data-nav>LOGO AgentReady</a><div class="chips" id="mchips"></div><button class="iconbtn" id="msearch" aria-label="Search"></button></header>
     <main class="content"><div class="wrap" id="app" tabindex="-1"></div></main>
   </div>
 </div>
 <nav class="tabs" id="tabs" aria-label="Main"></nav>
 
-<dialog id="pal" aria-label="Command palette"><input id="pal-q" autocomplete="off" spellcheck="false" aria-label="Search pages and runs" role="combobox" aria-controls="pal-list" aria-expanded="true"><ul id="pal-list" role="listbox"></ul></dialog>
+<dialog id="pal" aria-label="Command palette"><input id="pal-q" autocomplete="off" spellcheck="false" aria-label="Search pages and runs" role="combobox" aria-controls="pal-list" aria-expanded="true"><ul id="pal-list" role="listbox"></ul><div class="keys" id="pal-keys"></div></dialog>
 <dialog id="dlg" aria-labelledby="dlg-title">
   <div class="dlg-head"><h3 id="dlg-title"></h3><span class="faint" id="dlg-meta"></span><button class="btn ghost small" style="margin-left:auto" id="dlg-close"></button></div>
   <div class="dlg-body" id="dlg-body" tabindex="0"></div>
@@ -540,6 +564,8 @@ en: {
   again: "Run again", copyMd: "Copy", mdCopied: "AGENTS.md copied", print: "PDF / print",
   elapsed: "elapsed", searchPh: "Search by repository…", found: n => `${n} found`,
   palPh: "Go to a page or a run…", palHint: "Quick jump",
+  keys: ["<kbd>↑</kbd><kbd>↓</kbd> move", "<kbd>Enter</kbd> open", "<kbd>N</kbd> new test", "<kbd>/</kbd> search", "<kbd>G</kbd> then <kbd>T</kbd> <kbd>V</kbd> <kbd>H</kbd> <kbd>S</kbd> <kbd>,</kbd> go to page"],
+  offlineBar: "Offline: showing what was loaded. Reconnects by itself.", backOnline: "Back online", shared: "Link from Share pasted",
   diffH: "The change", noDiff: "The patch was not saved for this check.",
 },
 ru: {
@@ -659,6 +685,8 @@ ru: {
   again: "Запустить снова", copyMd: "Копировать", mdCopied: "AGENTS.md скопирован", print: "PDF / печать",
   elapsed: "прошло", searchPh: "Поиск по репозиторию…", found: n => `Найдено: ${n}`,
   palPh: "Перейти на страницу или к прогону…", palHint: "Быстрый переход",
+  keys: ["<kbd>↑</kbd><kbd>↓</kbd> выбор", "<kbd>Enter</kbd> открыть", "<kbd>N</kbd> новый тест", "<kbd>/</kbd> поиск", "<kbd>G</kbd>, затем <kbd>T</kbd> <kbd>V</kbd> <kbd>H</kbd> <kbd>S</kbd> <kbd>,</kbd> — страницы"],
+  offlineBar: "Нет сети: показано то, что уже загружено. Подключится само.", backOnline: "Сеть снова есть", shared: "Ссылка из «Поделиться» вставлена",
   diffH: "Изменение", noDiff: "Для этой проверки патч не сохранён.",
 }};
 
@@ -778,6 +806,7 @@ async function pollFeed(){
     for (const a of fresh){
       if (a.device_id === ME.device_id) continue;  // only what other devices did
       toast(`${a.device ? L().fromDev(a.device) + " " : ""}${a.msg}`, a.ref);
+      if (a.kind.startsWith("run_")) updateBadge();
       if (a.kind.endsWith("_done") || a.kind.endsWith("_start")){
         // refresh pages that only list results (never pages with a form the user may be typing in)
         if (["/history", "/stats"].includes(location.pathname)) route();
@@ -858,6 +887,8 @@ function renderShell(){
   $("#palbtn").onclick = openPalette;
   $("#tabs").innerHTML = links("");
   $(".mobilehead .mark").innerHTML = `${LOGO} AgentReady`;
+  $("#msearch").innerHTML = ic("search"); $("#msearch").onclick = openPalette; $("#msearch").hidden = !ME && !!AUTH?.accounts;
+  document.title = (cur === "tester" && location.pathname === "/" ? "" : t.nav[cur] + " · ") + "AgentReady";
   $("#mchips").innerHTML = HEALTH && !HEALTH.api_key_set ? `<span class="chip bad">${t.keyMissing}</span>` : "";
   document.querySelectorAll("[data-nav]").forEach(a => a.onclick = e => { e.preventDefault(); go(a.getAttribute("href")); });
 }
@@ -901,6 +932,11 @@ async function tester(){
   $("#f").onsubmit = start;
   $("#f").oninput = estimate; estimate();
   const exl = $("#ex"); if (exl) exl.onclick = e => { e.preventDefault(); $("#src").value = "example:" + ex; };
+  // Share > AgentReady on a phone (share_target) or the "Test a repo" icon shortcut
+  const q = new URLSearchParams(location.search);
+  const shared = [q.get("url"), q.get("text"), q.get("title")].join(" ").match(/https:\/\/github\.com\/[\w.-]+\/[\w.-]+/);
+  if (shared){ $("#src").value = shared[0].replace(/\.git$/, ""); toast(t.shared); }
+  if (shared || q.get("focus")){ history.replaceState({}, "", "/"); $("#src").focus(); }
   const lastDone = runs.find(r => r.status === "done");
   if (lastDone) realSpecimen(lastDone.id);
 }
@@ -1147,6 +1183,7 @@ function renderRun(){
   <section class="sheet block"><details open><summary>${t.log((r.events||[]).length)}</summary>
     <div class="log" id="log" tabindex="0" role="region" aria-label="Log">${(r.events||[]).map(e => `<div>[${e.t}s] ${esc(e.msg)}</div>`).join("")}</div></details></section>` : ""}`;
   renderShell();
+  document.title = `${m.score_after != null ? m.score_before + " → " + m.score_after + " · " : ""}${r.options.label || r.options.source} · AgentReady`;
   window.scrollTo(0, scroll);
   const log = $("#log"); if (log) log.scrollTop = log.scrollHeight;
   document.querySelectorAll(".lane[data-key]").forEach(el => el.onclick = () => openTrajectory(el.dataset.key));
@@ -1285,6 +1322,7 @@ function renderVerify(){
   renderShell();
   const on = (id, fn) => { const el = $("#" + id); if (el) el.onclick = fn; };
   on("notify", () => askNotify(v.id)); on("share", () => share("/verify/" + v.id, v.source));
+  document.title = `${v.score != null ? v.score + " · " : ""}${v.source} · AgentReady`;
 }
 
 function diffView(patch){
@@ -1497,6 +1535,7 @@ async function openPalette(){
 }
 function drawPalette(items){
   PAL = items;
+  $("#pal-keys").innerHTML = matchMedia("(pointer:fine)").matches ? L().keys.map(k => `<span>${k}</span>`).join("") : "";
   $("#pal-list").innerHTML = items.map((i, k) => `<li role="option" data-k="${k}" aria-selected="${k === PALSEL}">${ic(i.icon)}<span class="t">${esc(i.title)}</span><span class="sub">${esc(i.sub)}</span></li>`).join("");
   $("#pal-list").querySelectorAll("li").forEach(li => li.onclick = () => pickPalette(+li.dataset.k));
 }
@@ -1512,6 +1551,44 @@ document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); $("#pal").open ? $("#pal").close() : openPalette(); }
 });
 
+/* ------------------------------------------------------------- keyboard (PC) */
+let GPREFIX = 0;
+document.addEventListener("keydown", e => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  if (typing || e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]") || !ME) return;
+  const k = e.key.toLowerCase();
+  if (Date.now() - GPREFIX < 1200){
+    const to = {t: "/", v: "/verify", h: "/history", s: "/stats", ",": "/settings"}[k];
+    GPREFIX = 0; if (to){ e.preventDefault(); go(to); } return;
+  }
+  if (k === "g"){ GPREFIX = Date.now(); return; }
+  if (k === "n"){ e.preventDefault(); go("/?focus=1"); return; }
+  if (k === "/"){ const f = $("#hq, #src, #vsrc"); if (f){ e.preventDefault(); f.focus(); } return; }
+  if (k === "?"){ e.preventDefault(); openPalette(); }
+});
+
+/* ------------------------------------------------------------- app lifecycle: offline, resume, icon badge */
+function setOffline(off){
+  document.body.classList.toggle("offline", off);
+  $("#offbar").textContent = off ? L().offlineBar : "";
+}
+addEventListener("offline", () => setOffline(true));
+addEventListener("online", () => { setOffline(false); toast(L().backOnline); pollFeed(); refreshList(); });
+// a phone app that comes back from the background shows fresh results, not the ones from when it was hidden
+document.addEventListener("visibilitychange", () => { if (!document.hidden && ME){ pollFeed(); refreshList(); updateBadge(); } });
+function refreshList(){
+  // pages with only results: safe to redraw; never pages with a form the user may be typing in
+  if (["/history", "/stats"].includes(location.pathname)) route(true);
+  else if (location.pathname.startsWith("/run/") && RUN && !["queued", "running"].includes(RUN.status)) runPage(RUN.id);
+}
+// number of runs in progress on the app icon (installed app on PC, Android, iOS 16.4+)
+async function updateBadge(){
+  if (!("setAppBadge" in navigator) || !ME) return;
+  const runs = await api("/api/runs").catch(() => null); if (!runs) return;
+  const n = runs.filter(r => ["queued", "running"].includes(r.status)).length;
+  (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {});
+}
+
 window.onpopstate = () => route();
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); INSTALL = e; });
 window.addEventListener("appinstalled", () => { INSTALL = null; });
@@ -1524,7 +1601,8 @@ document.documentElement.lang = LANG;
   if (AUTH?.accounts && !AUTH.user) return authScreen();
   if (AUTH?.user){ ME = {user: AUTH.user, device_id: AUTH.device_id, device: AUTH.device};
     if (["/login", "/pair"].includes(location.pathname)) history.replaceState({}, "", "/");
-    pollFeed(); FEED = setInterval(pollFeed, 4000); }
+    pollFeed(); FEED = setInterval(pollFeed, 4000); updateBadge(); }
+  if (!navigator.onLine) setOffline(true);
   route();
 })();
 </script>
