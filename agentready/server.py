@@ -375,7 +375,7 @@ class Handler(BaseHTTPRequestHandler):
             if any(p.state.status in ("queued", "running") for p in ACTIVE.values()):
                 return self._json({"error": "stop the run in progress first"}, 409)
             try:
-                self.auth.erase(me["user"], str(body.get("password", "")))
+                self.auth.erase(me["user"], str(body.get("password", "")), self._ip())
             except PermissionError as exc:
                 return self._json({"error": str(exc)}, 401)
             ACTIVE.clear()
@@ -385,6 +385,9 @@ class Handler(BaseHTTPRequestHandler):
                 continue
             shutil.rmtree(d, ignore_errors=True) if d.is_dir() else d.unlink(missing_ok=True)
         ACTIVITY.clear()
+        # the server is unclaimed again: a code that was printed (and maybe seen) before must not claim it
+        Handler.setup_code = secrets.token_urlsafe(9)
+        print(f"All data erased. Creating an account from another device needs this new setup code: {Handler.setup_code}")
         self._json({"erased": True}, extra=self._cookie("", 0))
 
     def _start_verify(self, body: dict, public: bool, me: dict | None) -> None:

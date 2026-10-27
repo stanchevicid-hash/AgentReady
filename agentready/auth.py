@@ -81,20 +81,26 @@ class Auth:
         self._save()
         return token
 
+    def _check(self, username: str, password: str, ip: str) -> bool:
+        """Password check with a per-IP lockout; call with the lock held."""
+        count, until = self._fails.get(ip, [0, 0])
+        if until > time.time():
+            raise PermissionError(f"too many attempts, try again in {int(until - time.time())} s")
+        u = self.data["users"].get((username or "").strip())
+        # hash even for an unknown name, so response time doesn't tell which usernames exist
+        salt = bytes.fromhex(u["salt"]) if u else b"\0" * 16
+        ok = hmac.compare_digest(u["hash"] if u else "", _hash_pw(password or "", salt)) and u is not None
+        if not ok:
+            count += 1
+            self._fails[ip] = [0, time.time() + LOCK_SECONDS] if count >= MAX_FAILS else [count, 0]
+            return False
+        self._fails.pop(ip, None)
+        return True
+
     def login(self, username: str, password: str, ua: str, ip: str) -> str:
         with self._lock:
-            count, until = self._fails.get(ip, [0, 0])
-            if until > time.time():
-                raise PermissionError(f"too many attempts, try again in {int(until - time.time())} s")
-            u = self.data["users"].get((username or "").strip())
-            # hash even for an unknown name, so response time doesn't tell which usernames exist
-            salt = bytes.fromhex(u["salt"]) if u else b"\0" * 16
-            ok = hmac.compare_digest(u["hash"] if u else "", _hash_pw(password or "", salt)) and u is not None
-            if not ok:
-                count += 1
-                self._fails[ip] = [0, time.time() + LOCK_SECONDS] if count >= MAX_FAILS else [count, 0]
+            if not self._check(username, password, ip):
                 raise PermissionError("wrong username or password")
-            self._fails.pop(ip, None)
             return self._new_session(username.strip(), ua, "password")
 
     def session(self, token: str | None) -> dict | None:
@@ -133,11 +139,10 @@ class Auth:
                     return True
         return False
 
-    def erase(self, user: str, password: str) -> None:
+    def erase(self, user: str, password: str, ip: str) -> None:
         """Delete the account and every session (the right to have your data erased)."""
         with self._lock:
-            u = self.data["users"].get(user)
-            if not u or not hmac.compare_digest(u["hash"], _hash_pw(password or "", bytes.fromhex(u["salt"]))):
+            if not self._check(user, password, ip):
                 raise PermissionError("wrong password")
             self.data = {"users": {}, "sessions": {}}
             self._pair.clear()
