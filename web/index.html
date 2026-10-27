@@ -10,6 +10,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AgentReady">
@@ -39,6 +40,7 @@
   --bad:#FF8597; --bad-soft:#40212A; --warn:#E0A84A; --warn-soft:#3A2E17; color-scheme: dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
@@ -293,6 +295,88 @@ body.offline .mobilehead{top:calc(30px + env(safe-area-inset-top))}
   .lane{min-height:44px}
 }
 
+
+/* ---------- welcome: the story of the product, first thing a new visitor sees ---------- */
+.wl{--wl-bg:#0E1424;background:var(--wl-bg);color:#E6EAF3;min-height:100vh;overflow-x:hidden}
+.wl a{color:inherit}
+.wl-nav{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px max(20px,calc(50% - 560px));
+  padding-top:max(14px,env(safe-area-inset-top));background:rgba(14,20,36,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06)}
+.wl-nav .mark{color:#fff;padding:0}
+.wl-nav .sp{flex:1}
+.wl-ghost{display:inline-flex;align-items:center;text-decoration:none;background:transparent;border:1px solid rgba(255,255,255,.18);color:#E6EAF3;border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
+.wl-cta{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:15px 26px;font:700 16px var(--body);cursor:pointer;
+  color:#0E1424;background:linear-gradient(135deg,#FFFFFF,#C9D6FF);box-shadow:0 10px 40px -10px rgba(111,143,255,.8);text-decoration:none}
+.wl-cta:hover{filter:brightness(1.05)} .wl-cta svg.i{width:18px;height:18px}
+.wl-sec{max-width:1120px;margin:0 auto;padding:72px 20px}
+.wl-hero{position:relative;padding-top:56px;text-align:center}
+.wl-hero::before{content:"";position:absolute;inset:-120px -40vw auto;height:720px;z-index:0;pointer-events:none;
+  background:radial-gradient(40% 50% at 30% 30%,rgba(61,99,240,.45),transparent 70%),radial-gradient(35% 45% at 72% 40%,rgba(30,138,90,.35),transparent 70%),radial-gradient(30% 40% at 50% 80%,rgba(180,35,60,.25),transparent 70%);
+  filter:blur(10px);animation:wlglow 14s ease-in-out infinite alternate;
+  -webkit-mask-image:linear-gradient(#000 45%,transparent);mask-image:linear-gradient(#000 45%,transparent)}
+@keyframes wlglow{to{transform:translate3d(0,40px,0) scale(1.08)}}
+.wl-hero > *{position:relative;z-index:1}
+.wl-kicker{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:600;letter-spacing:.02em;color:#C9D6FF;
+  border:1px solid rgba(201,214,255,.25);background:rgba(255,255,255,.04);padding:6px 12px;border-radius:999px}
+.wl h1{color:#fff;font-size:clamp(38px,6.4vw,76px);line-height:1.02;letter-spacing:-.035em;margin:22px auto 18px;max-width:14ch}
+.wl h1 em{font-style:normal;background:linear-gradient(90deg,#8AA2FF,#5BE0A6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wl-lead{font-size:clamp(17px,2vw,21px);color:#B3BCD0;max-width:60ch;margin:0 auto 30px;line-height:1.5}
+.wl-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
+.wl-proof{margin:42px auto 0;max-width:880px;border-radius:20px;padding:22px;background:rgba(27,35,53,.75);border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 40px 80px -40px rgba(0,0,0,.8);text-align:left}
+.wl-proof .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:#8590A8}
+.wl-proof .big{font:700 15px var(--display);color:#fff}
+.wl-proof .score{margin-left:auto;font:700 28px var(--display);color:#fff;display:flex;align-items:center;gap:10px}
+.wl-proof .score .a{color:#5BE0A6}
+.wl-lanes{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.wl-lanes h4{margin:0 0 8px;font:600 13px var(--body);color:#B3BCD0;display:flex;gap:8px;align-items:center}
+.wl-lane{display:grid;grid-template-columns:1fr 64px;gap:10px;align-items:center;min-height:22px;margin:4px 0}
+.wl-lane .ticks{height:14px}
+.wl-lane .tick{opacity:0;animation:wltick .25s ease-out forwards}
+@keyframes wltick{from{opacity:0;transform:scaleY(.2)}to{opacity:1;transform:none}}
+.wl-lane .v{font-size:12px;font-weight:700;text-align:right;opacity:0;animation:wltick .3s ease-out forwards}
+.wl-lane .v.ok{color:#5BE0A6} .wl-lane .v.no{color:#FF8597}
+.wl-h2{font:700 clamp(28px,3.6vw,44px)/1.08 var(--display);letter-spacing:-.03em;color:#fff;margin:0 0 12px;max-width:20ch}
+.wl-sub{color:#B3BCD0;max-width:62ch;margin:0 0 34px;font-size:17px}
+.wl-eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8AA2FF;margin-bottom:12px}
+.wl-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.wl-card{padding:22px;border-radius:18px;background:rgba(27,35,53,.6);border:1px solid rgba(255,255,255,.07)}
+.wl-card svg.i{width:26px;height:26px;color:#8AA2FF;margin-bottom:12px}
+.wl-card h3{color:#fff;font-size:18px;margin-bottom:6px}
+.wl-card p{margin:0;color:#B3BCD0;font-size:15px;line-height:1.5}
+.wl-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:st}
+.wl-step{position:relative;padding:22px 20px;border-radius:18px;background:linear-gradient(180deg,rgba(61,99,240,.14),rgba(27,35,53,.5));border:1px solid rgba(138,162,255,.18)}
+.wl-step::before{counter-increment:st;content:counter(st);position:absolute;top:16px;right:18px;font:700 40px var(--display);color:rgba(255,255,255,.07)}
+.wl-step .who{display:inline-block;font-size:12px;font-weight:700;color:#0E1424;background:#8AA2FF;border-radius:999px;padding:3px 9px;margin-bottom:12px}
+.wl-step .who.g{background:#5BE0A6} .wl-step .who.r{background:#FF8597} .wl-step .who.y{background:#E0A84A}
+.wl-step h3{color:#fff;font-size:17px;margin-bottom:6px}
+.wl-step p{margin:0;color:#B3BCD0;font-size:14px;line-height:1.5}
+.wl-split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.wl-code{font:13px/1.65 var(--mono);background:#0A0F1C;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 0;overflow:hidden}
+.wl-code div{padding:0 16px;white-space:pre}
+.wl-code .bad{background:rgba(255,133,151,.12);color:#FF8597} .wl-code .ok{color:#8590A8}
+.wl-code .tag{float:right;font:700 11px var(--body);padding:1px 8px;border-radius:999px;background:#FF8597;color:#0E1424;margin-left:10px}
+.wl-list{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:12px}
+.wl-list li{display:flex;gap:12px;align-items:flex-start;color:#D5DBEA}
+.wl-list svg.i{color:#5BE0A6;flex:none;margin-top:1px}
+.wl-stack{display:flex;flex-wrap:wrap;gap:12px}
+.wl-chip{padding:12px 16px;border-radius:14px;background:rgba(27,35,53,.6);border:1px solid rgba(255,255,255,.08);min-width:200px;flex:1}
+.wl-chip b{display:block;color:#fff;font-size:15px} .wl-chip span{color:#8590A8;font-size:13px}
+.wl-end{text-align:center;padding-bottom:110px}
+.wl-foot{text-align:center;color:#5E6A80;font-size:13px;padding:0 20px 40px}
+.wl [data-reveal]{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.wl [data-reveal].in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){.wl [data-reveal]{opacity:1;transform:none;transition:none} .wl-hero::before{animation:none} .wl-lane .tick,.wl-lane .v{animation:none;opacity:1}}
+@media (max-width:860px){
+  .wl-cards,.wl-steps{grid-template-columns:1fr 1fr} .wl-split{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .wl-sec{padding:52px 16px} .wl-hero{padding-top:36px}
+  .wl-cards,.wl-steps,.wl-lanes{grid-template-columns:1fr}
+  .wl-proof{padding:16px} .wl-proof .score{margin-left:0;width:100%}
+  .wl-nav .wl-ghost.hide-s{display:none}
+  .wl-code{font-size:11.5px}
+}
+
 /* ---------- motion + loading ---------- */
 #app > *{animation:rise .28s ease-out both}
 #app > *:nth-child(2){animation-delay:.04s} #app > *:nth-child(3){animation-delay:.08s} #app > *:nth-child(4){animation-delay:.12s}
@@ -308,7 +392,7 @@ body.offline .mobilehead{top:calc(30px + env(safe-area-inset-top))}
 @keyframes shimmer{to{background-position:-200% 0}}
 @media (prefers-reduced-motion: reduce){#app > *,.skel{animation:none} .sheet,.btn{transition:none}}
 .elapsed{font:500 13px var(--mono);color:var(--ink-2)}
-.search{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet) no-repeat 13px 50%/18px;margin-bottom:12px}
+.searchbox{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet) no-repeat 13px 50%/18px;margin-bottom:12px}
 kbd{font:600 11px var(--mono);padding:2px 6px;border:1px solid var(--rule);border-bottom-width:2px;border-radius:5px;background:var(--paper);color:var(--ink-2)}
 .navlink.kbd{margin-top:6px;font-size:13px;color:#8C96AA;cursor:pointer;border:0;background:none;width:100%;text-align:left}
 .navlink.kbd kbd{margin-left:auto;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#C9D1E4}
@@ -434,6 +518,7 @@ const ICONS = {
   logout: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/>',
   lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   again: '<path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
   print: '<path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/>',
@@ -515,10 +600,10 @@ en: {
   offline: "Server offline",
   // verifier
   verifyH: "Verify code an AI wrote",
-  vSrc: "Repository the code is for", vPatch: "The AI's change (diff / patch)",
-  vPatchPh: "--- a/src/app.py\n+++ b/src/app.py\n@@ -1,3 +1,3 @@\n...",
-  vHow: "Get it with <code>git diff &gt; change.patch</code>",
-  vFile: "Open .patch file", vGo: "Verify",
+  vSrc: "Repository (optional: adds the patch-applies and tests checks)", vPatch: "Code or diff the AI wrote",
+  vPatchPh: "def total(items):\n    return sum(i.price for i in items)\n\n…or a diff: --- a/app.py  +++ b/app.py",
+  vHow: "Paste any Python an AI gave you, or a diff (<code>git diff &gt; change.patch</code>). No repo needed.",
+  vFile: "Open file", vGo: "Verify", vSample: "Try AI-written code",
   vWarn: "Your tests run on the changed code. Only verify code you would run yourself.",
   vRecent: "Recent verifications", vNone: "No verifications yet.",
   vResult: "Verification", vScore: "Code score",
@@ -559,11 +644,40 @@ en: {
   liveH: "Live across devices",
   eraseH: "Delete all my data", eraseP: "Removes every run, verification, the account and all signed-in devices from this server. This cannot be undone.",
   eraseBtn: "Delete everything", erasePw: "Type your password to confirm",
+  wl: {
+    kicker: "NVIDIA Nemotron · Nebius Token Factory",
+    h1: "Do AI agents actually work <em>in your repo?</em>",
+    lead: "AgentReady plants real bugs in your code, sends Nemotron coding agents to fix them, finds out where they get lost, writes the AGENTS.md that fixes it, and proves the fix by running everything again.",
+    start: "Get started", seeRun: "See a real run", skip: "Skip intro",
+    proofH: "A real run, replayed", proofSub: (src, n) => `${src} · ${n} agent attempts, one mark per step`,
+    before: "Current docs", after: "With the new AGENTS.md", ok: "solved", no: "failed",
+    noProof: "Your first run will show up here: every agent attempt, step by step.",
+    probE: "The problem", probH: "Every repo is a different maze for an AI agent.",
+    probS: "Teams write agent instructions by guesswork and never learn whether they help.",
+    prob: [["search", "Lost in the code", "Agents read the wrong files and fix symptoms, not the bug."],
+           ["tester", "Can't run the tests", "They guess pytest where the repo uses unittest, or miss PYTHONPATH."],
+           ["history", "Docs that drifted", "A README written years ago points at files that no longer exist."]],
+    howE: "How it works", howH: "Measure. Diagnose. Fix. Prove.",
+    howS: "Three Nemotron models, each where it fits, plus web research. Every result is graded by your own test suite, never by a model's opinion.",
+    how: [["Super", "", "Plant real bugs", "Defects your tests catch, each with a bug report that doesn't give the answer away."],
+          ["Super", "", "Agents try to fix them", "Nemotron Super agents in throwaway sandboxes; test files are restored before grading."],
+          ["Nano · Ultra", "g", "Find the root causes", "Nano triages every attempt, Tavily finds the official docs, Ultra writes AGENTS.md."],
+          ["Proof", "y", "Run it all again", "Same tasks, new instructions: score, success rate with 95% ranges, steps and tokens."]],
+    verE: "And for every change", verH: "Verify code an AI wrote. No repo needed.",
+    verS: "Paste what the assistant gave you. AgentReady checks it for real, in seconds.",
+    ver: ["Packages that don't exist on PyPI", "eval, shell=True, swallowed errors", "Hard-coded secrets", "Syntax, and with the repo: patch applies, tests still pass", "A Nemotron review on top"],
+    verCta: "Open the Verifier",
+    codeTags: ["not on PyPI", "risky", "secret"],
+    stackE: "Built on", stack: [["NVIDIA Nemotron 3", "Nano · Super · Ultra"], ["Nebius Token Factory", "every model call"], ["Nebius Serverless", "Jobs per attempt, Endpoint for the app"], ["Tavily", "official docs research"]],
+    endH: "Make your repo work for the agents that work on it.",
+    endS: "PC and phone, one account, live. Private and self-hosted.",
+    foot: "Open source · MIT · No tracking",
+  },
   setupCode: "Setup code", setupCodeHint: "Printed in the AgentReady console on the computer it runs on. Not needed when you open it on that computer as localhost.",
   stop: "Stop", stopQ: "Stop this run? Finished attempts are kept.", stopping: "Stopping…",
   again: "Run again", copyMd: "Copy", mdCopied: "AGENTS.md copied", print: "PDF / print",
   elapsed: "elapsed", searchPh: "Search by repository…", found: n => `${n} found`,
-  palPh: "Go to a page or a run…", palHint: "Quick jump",
+  palPh: "Go to a page or a run…", palHint: "Quick jump", aboutApp: "What is AgentReady",
   keys: ["<kbd>↑</kbd><kbd>↓</kbd> move", "<kbd>Enter</kbd> open", "<kbd>N</kbd> new test", "<kbd>/</kbd> search", "<kbd>G</kbd> then <kbd>T</kbd> <kbd>V</kbd> <kbd>H</kbd> <kbd>S</kbd> <kbd>,</kbd> go to page"],
   offlineBar: "Offline: showing what was loaded. Reconnects by itself.", backOnline: "Back online", shared: "Link from Share pasted",
   diffH: "The change", noDiff: "The patch was not saved for this check.",
@@ -638,10 +752,10 @@ ru: {
   grading: "Проверка: скрытые тесты", tokenPrompt: "Токен доступа:",
   offline: "Сервер недоступен",
   verifyH: "Проверка кода, написанного ИИ",
-  vSrc: "Репозиторий, для которого код", vPatch: "Изменение от ИИ (diff / patch)",
-  vPatchPh: "--- a/src/app.py\n+++ b/src/app.py\n@@ -1,3 +1,3 @@\n...",
-  vHow: "Получить: <code>git diff &gt; change.patch</code>",
-  vFile: "Открыть .patch", vGo: "Проверить",
+  vSrc: "Репозиторий (необязательно: добавит проверки «патч применяется» и «тесты»)", vPatch: "Код или diff от ИИ",
+  vPatchPh: "def total(items):\n    return sum(i.price for i in items)\n\n…or a diff: --- a/app.py  +++ b/app.py",
+  vHow: "Вставьте любой Python от ИИ или diff (<code>git diff &gt; change.patch</code>). Репозиторий не обязателен.",
+  vFile: "Открыть файл", vGo: "Проверить", vSample: "Пример кода от ИИ",
   vWarn: "Ваши тесты запускаются на изменённом коде. Проверяйте только код, который сами готовы запустить.",
   vRecent: "Последние проверки", vNone: "Проверок пока нет.",
   vResult: "Проверка", vScore: "Оценка кода",
@@ -680,11 +794,40 @@ ru: {
   liveH: "Вживую на всех устройствах",
   eraseH: "Удалить все мои данные", eraseP: "Удаляет с этого сервера все прогоны, проверки, аккаунт и все подключённые устройства. Отменить нельзя.",
   eraseBtn: "Удалить всё", erasePw: "Введите пароль для подтверждения",
+  wl: {
+    kicker: "NVIDIA Nemotron · Nebius Token Factory",
+    h1: "Справляются ли ИИ-агенты <em>с вашим кодом?</em>",
+    lead: "AgentReady подкладывает в код настоящие баги, отправляет агентов Nemotron их чинить, выясняет, где они теряются, пишет AGENTS.md, который это исправляет, и доказывает результат повторным прогоном.",
+    start: "Начать", seeRun: "Настоящий прогон", skip: "Пропустить",
+    proofH: "Настоящий прогон, повтор", proofSub: (src, n) => `${src} · ${n} попыток агентов, отметка — один шаг`,
+    before: "Старая документация", after: "С новым AGENTS.md", ok: "решено", no: "не решено",
+    noProof: "Здесь появится ваш первый прогон: каждая попытка агента, шаг за шагом.",
+    probE: "Проблема", probH: "Каждый репозиторий — свой лабиринт для ИИ-агента.",
+    probS: "Инструкции для агентов пишут наугад и никогда не узнают, помогают ли они.",
+    prob: [["search", "Теряются в коде", "Читают не те файлы и чинят симптомы, а не баг."],
+           ["tester", "Не могут запустить тесты", "Угадывают pytest там, где unittest, или забывают PYTHONPATH."],
+           ["history", "Устаревшие доки", "README многолетней давности ссылается на файлы, которых уже нет."]],
+    howE: "Как это работает", howH: "Измерить. Понять. Исправить. Доказать.",
+    howS: "Три модели Nemotron, каждая на своём месте, плюс веб-поиск. Результат оценивают тесты вашего репозитория, а не мнение модели.",
+    how: [["Super", "", "Подложить баги", "Дефекты, которые ловят ваши тесты, и баг-репорт без подсказки ответа."],
+          ["Super", "", "Агенты чинят", "Агенты Nemotron Super в одноразовых песочницах; тесты перед проверкой восстанавливаются."],
+          ["Nano · Ultra", "g", "Найти причины", "Nano разбирает каждую попытку, Tavily ищет документацию, Ultra пишет AGENTS.md."],
+          ["Доказательство", "y", "Прогнать снова", "Те же задачи с новыми инструкциями: оценка, доля решённых с диапазоном 95%, шаги и токены."]],
+    verE: "И для каждого изменения", verH: "Проверка кода от ИИ. Репозиторий не нужен.",
+    verS: "Вставьте то, что выдал ассистент. AgentReady проверит по-настоящему, за секунды.",
+    ver: ["Пакеты, которых нет на PyPI", "eval, shell=True, проглоченные ошибки", "Ключи прямо в коде", "Синтаксис, а с репозиторием — патч применяется и тесты проходят", "И ревью Nemotron сверху"],
+    verCta: "Открыть проверку",
+    codeTags: ["нет на PyPI", "опасно", "ключ"],
+    stackE: "Технологии", stack: [["NVIDIA Nemotron 3", "Nano · Super · Ultra"], ["Nebius Token Factory", "каждый вызов модели"], ["Nebius Serverless", "Jobs на попытку, Endpoint для приложения"], ["Tavily", "поиск документации"]],
+    endH: "Сделайте репозиторий удобным для агентов, которые с ним работают.",
+    endS: "ПК и телефон, один аккаунт, вживую. Приватно, на своём сервере.",
+    foot: "Открытый код · MIT · Без слежки",
+  },
   setupCode: "Код настройки", setupCodeHint: "Напечатан в консоли AgentReady на компьютере, где он запущен. Не нужен, если открыть там же через localhost.",
   stop: "Остановить", stopQ: "Остановить прогон? Завершённые попытки сохранятся.", stopping: "Останавливаем…",
   again: "Запустить снова", copyMd: "Копировать", mdCopied: "AGENTS.md скопирован", print: "PDF / печать",
   elapsed: "прошло", searchPh: "Поиск по репозиторию…", found: n => `Найдено: ${n}`,
-  palPh: "Перейти на страницу или к прогону…", palHint: "Быстрый переход",
+  palPh: "Перейти на страницу или к прогону…", palHint: "Быстрый переход", aboutApp: "Что такое AgentReady",
   keys: ["<kbd>↑</kbd><kbd>↓</kbd> выбор", "<kbd>Enter</kbd> открыть", "<kbd>N</kbd> новый тест", "<kbd>/</kbd> поиск", "<kbd>G</kbd>, затем <kbd>T</kbd> <kbd>V</kbd> <kbd>H</kbd> <kbd>S</kbd> <kbd>,</kbd> — страницы"],
   offlineBar: "Нет сети: показано то, что уже загружено. Подключится само.", backOnline: "Сеть снова есть", shared: "Ссылка из «Поделиться» вставлена",
   diffH: "Изменение", noDiff: "Для этой проверки патч не сохранён.",
@@ -881,6 +1024,7 @@ function renderShell(){
   const t = L(), cur = section();
   const links = cls => NAV.map(([path, key]) => `<a class="${cls}" href="${path}" data-nav ${cur === key ? 'aria-current="page"' : ""}>${ic(key)}<span>${t.nav[key]}</span></a>`).join("");
   $("#side").innerHTML = `<a class="mark" href="/" data-nav>${LOGO} AgentReady</a>${links("navlink")}
+    <a class="navlink kbd" href="/welcome">${ic("robot")}<span>${t.aboutApp}</span></a>
     <button class="navlink kbd" id="palbtn">${ic("search")}<span>${t.palHint}</span><kbd>Ctrl K</kbd></button>
     <div class="navfoot"><div class="chips">${statusChips()}</div>
       ${ME ? `<a class="who" href="/settings" data-nav style="text-decoration:none"><span class="avatar">${esc(ME.user[0].toUpperCase())}</span><span>${esc(ME.user)}<small><span class="live"></span>${esc(ME.device || "")}</small></span></a>` : ""}</div>`;
@@ -1245,9 +1389,9 @@ async function verifyPage(){
       <label class="faint" style="font-size:13px" for="vsrc">${t.vSrc}</label>
       <div class="field" style="margin:4px 0 14px"><input id="vsrc" name="source" placeholder="${t.srcPh}${HEALTH?.public ? "" : esc(t.srcPhLocal)}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></div>
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><label class="faint" style="font-size:13px" for="vpatch">${t.vPatch}</label>
-        <label class="btn ghost small" style="margin-left:auto">${ic("upload")}${t.vFile}<input type="file" id="vfile" accept=".patch,.diff,.txt,text/plain" hidden></label></div>
+        <label class="btn ghost small" style="margin-left:auto">${ic("upload")}${t.vFile}<input type="file" id="vfile" accept=".patch,.diff,.txt,.py,text/plain" hidden></label></div>
       <textarea id="vpatch" name="patch" placeholder="${esc(t.vPatchPh)}" spellcheck="false" autocapitalize="off" style="margin-top:6px"></textarea>
-      <div class="hint">${t.vHow}${ex ? ` · <a href="#" id="vex">${esc(ex)}</a>` : ""}</div>
+      <div class="hint">${t.vHow} <a href="#" id="vsample">${t.vSample}</a></div>
       <div class="hint" style="color:var(--warn)">${t.vWarn}</div>
       <button class="btn" id="vgo" type="submit" style="margin-top:14px;width:100%">${ic("verify")}${t.vGo}</button>
       <div class="err" id="verr" role="alert"></div>
@@ -1262,7 +1406,8 @@ async function verifyPage(){
   </div>`;
   renderShell();
   $("#vfile").onchange = async e => { const f = e.target.files[0]; if (f) $("#vpatch").value = await f.text(); };
-  const vex = $("#vex"); if (vex) vex.onclick = e => { e.preventDefault(); $("#vsrc").value = "example:" + ex; };
+  // the kind of code assistants really produce: a made-up package, eval, a swallowed error
+  $("#vsample").onclick = e => { e.preventDefault(); $("#vsrc").value = ""; $("#vpatch").value = SAMPLE_CODE; $("#vpatch").focus(); };
   $("#vf").onsubmit = async e => {
     e.preventDefault();
     const hdr = tokenHeader(); if (hdr === null) return;
@@ -1330,6 +1475,11 @@ function diffView(patch){
   return `<div class="diff" style="margin-top:10px" tabindex="0" role="region" aria-label="Diff">${patch.split("\n").map(l => `<div class="${cls(l)}">${esc(l)}</div>`).join("")}</div>`;
 }
 
+const SAMPLE_CODE = [
+  "import json", "import requests", "import fastjsonx  # \"faster json\", suggested by the assistant", "",
+  "def load_prices(url):", "    try:", "        data = requests.get(url, timeout=5).text", "        return eval(data)",
+  "    except:", "        return {}", "", "API_KEY = \"sk-live-4f9a8c2e1b7d6a5f\"", ""].join("\n");
+
 /* ------------------------------------------------------------- history */
 function merge(runs, vers){
   return [...runs.map(r => ({...r, _type: "run"})), ...vers.map(v => ({...v, _type: "ver"}))].sort((a, b) => b.created - a.created);
@@ -1354,7 +1504,7 @@ async function historyPage(){
   $("#app").innerHTML = `${topbar(t.histH)}
     <div class="filters" style="margin-top:12px">${[["all", t.fAll], ["run", t.fRuns], ["ver", t.fVer]].map(([k, l]) =>
       `<button class="tab" data-f="${k}" aria-pressed="${HFILTER === k}">${l} <span class="faint">${lens[k]}</span></button>`).join("")}</div>
-    <input class="search" id="hq" type="search" placeholder="${t.searchPh}" aria-label="${t.searchPh}" value="${esc(HQUERY)}"
+    <input class="searchbox" id="hq" type="search" placeholder="${t.searchPh}" aria-label="${t.searchPh}" value="${esc(HQUERY)}"
       style="background-image:url(&quot;data:image/svg+xml,${encodeURIComponent(glass)}&quot;)">
     <section class="sheet block" id="hlist"></section>`;
   renderShell();
@@ -1495,6 +1645,84 @@ function loadQR(url){
   document.head.appendChild(s);
 }
 
+/* ------------------------------------------------------------- welcome (intro for new visitors and demos) */
+async function welcomeScreen(){
+  clearInterval(POLL); clearInterval(FEED);
+  const t = L(), w = t.wl;
+  document.title = "AgentReady · " + w.h1.replace(/<[^>]+>/g, "");
+  document.body.innerHTML = `<div class="wl">
+    <nav class="wl-nav" aria-label="Intro"><a class="mark" href="/" id="wl-home">${LOGO} AgentReady</a><span class="sp"></span>
+      <button class="wl-ghost" id="wl-lang">${LANG === "ru" ? "English" : "Русский"}</button>
+      <button class="wl-ghost hide-s" id="wl-skip">${w.skip}</button></nav>
+    <main>
+    <section class="wl-sec wl-hero">
+      <span class="wl-kicker">${ic("robot", 'style="width:16px;height:16px"')}${w.kicker}</span>
+      <h1>${w.h1}</h1>
+      <p class="wl-lead">${w.lead}</p>
+      <div class="wl-ctas"><button class="wl-cta" data-start>${w.start} ${ic("arrow")}</button>
+        <a class="wl-ghost" id="wl-run" href="/" hidden style="padding:14px 22px;font-size:16px">${w.seeRun}</a></div>
+      <div class="wl-proof" id="wl-proof" data-reveal ${AUTH?.accounts && !AUTH.user ? "hidden" : ""}><p style="margin:0;color:#8590A8">${w.noProof}</p></div>
+    </section>
+    <section class="wl-sec" data-reveal>
+      <div class="wl-eyebrow">${w.probE}</div><h2 class="wl-h2">${w.probH}</h2><p class="wl-sub">${w.probS}</p>
+      <div class="wl-cards">${w.prob.map(([i, h, p]) => `<div class="wl-card">${ic(i)}<h3>${h}</h3><p>${p}</p></div>`).join("")}</div>
+    </section>
+    <section class="wl-sec" data-reveal>
+      <div class="wl-eyebrow">${w.howE}</div><h2 class="wl-h2">${w.howH}</h2><p class="wl-sub">${w.howS}</p>
+      <div class="wl-steps">${w.how.map(([who, c, h, p]) => `<div class="wl-step"><span class="who ${c}">${who}</span><h3>${h}</h3><p>${p}</p></div>`).join("")}</div>
+    </section>
+    <section class="wl-sec" data-reveal><div class="wl-split">
+      <div><div class="wl-eyebrow">${w.verE}</div><h2 class="wl-h2">${w.verH}</h2><p class="wl-sub">${w.verS}</p>
+        <ul class="wl-list">${w.ver.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
+        <button class="wl-cta" data-start="/verify">${ic("verify")}${w.verCta}</button></div>
+      <div class="wl-code" aria-hidden="true">${[
+        ["ok", "import requests"], ["bad", "import fastjsonx", 0], ["ok", ""], ["ok", "def load_prices(url):"], ["ok", "    try:"],
+        ["ok", "        data = requests.get(url).text"], ["bad", "        return eval(data)", 1], ["bad", "    except:", 1],
+        ["ok", "        return {}"], ["ok", ""], ["bad", 'API_KEY = "sk-live-4f9a…"', 2]]
+        .map(([c, l, tag]) => `<div class="${c}">${esc(l) || " "}${tag != null ? `<span class="tag">${w.codeTags[tag]}</span>` : ""}</div>`).join("")}</div>
+    </div></section>
+    <section class="wl-sec" data-reveal>
+      <div class="wl-eyebrow">${w.stackE}</div>
+      <div class="wl-stack">${w.stack.map(([b, s]) => `<div class="wl-chip"><b>${b}</b><span>${s}</span></div>`).join("")}</div>
+    </section>
+    <section class="wl-sec wl-end" data-reveal>
+      <h2 class="wl-h2" style="margin:0 auto 12px">${w.endH}</h2><p class="wl-sub" style="margin:0 auto 28px">${w.endS}</p>
+      <button class="wl-cta" data-start>${w.start} ${ic("arrow")}</button>
+    </section>
+    </main>
+    <div class="wl-foot">${w.foot}</div></div>`;
+  const leave = to => { store.set("ar-welcomed", "1"); location.href = to || "/"; };
+  document.querySelectorAll("[data-start]").forEach(b => b.onclick = () => leave(b.dataset.start));
+  $("#wl-skip").onclick = () => leave("/");
+  $("#wl-home").onclick = e => { e.preventDefault(); leave("/"); };
+  $("#wl-lang").onclick = () => { LANG = LANG === "ru" ? "en" : "ru"; store.set("ar-lang", LANG); document.documentElement.lang = LANG; welcomeScreen(); };
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold: .12}) : null;
+  document.querySelectorAll("[data-reveal]").forEach(el => io ? io.observe(el) : el.classList.add("in"));
+  welcomeProof();
+}
+
+async function welcomeProof(){
+  // the hero shows a real finished run when this visitor may see runs; nothing invented when not
+  if (AUTH?.accounts && !AUTH.user) return;  // signed out: no runs to show (and no 401 in the console)
+  const get = async u => { const r = await fetch(u).catch(() => null); return r && r.ok ? r.json() : null; };
+  const runs = await get("/api/runs"); const best = (runs || []).filter(r => r.status === "done" && r.score_after != null)
+    .sort((a, b) => (b.score_after - b.score_before) - (a.score_after - a.score_before))[0];
+  const run = best && await get("/api/runs/" + best.id); const box = $("#wl-proof"); if (!run || !box) return;
+  const w = L().wl, eps = Object.values(run.episodes || {});
+  const lanes = cond => eps.filter(e => e.condition === cond).sort((a, b) => a.key.localeCompare(b.key, undefined, {numeric: true})).slice(0, 6);
+  let delay = 0;
+  const lane = e => { const ticks = (e.steps || []).map(st => { delay += 0.025;
+      return `<span class="tick ${esc(st.action)} ${st.ok ? "" : "fail"}" style="animation-delay:${delay.toFixed(2)}s"></span>`; }).join("");
+    return `<div class="wl-lane"><span class="ticks">${ticks}</span><span class="v ${e.success ? "ok" : "no"}" style="animation-delay:${delay.toFixed(2)}s">${e.success ? w.ok : w.no}</span></div>`; };
+  const m = run.metrics;
+  box.innerHTML = `<div class="hd"><span class="big">${w.proofH}</span><span>${esc(w.proofSub(run.options.label || run.options.source, eps.length))}</span>
+      <span class="score">${m.score_before} <span style="color:#5E6A80">→</span> <span class="a">${m.score_after}</span></span></div>
+    <div class="wl-lanes"><div><h4><i class="swatch" style="background:#8C96AA"></i>${w.before}</h4>${lanes("baseline").map(lane).join("")}</div>
+      <div><h4><i class="swatch" style="background:#8AA2FF"></i>${w.after}</h4>${lanes("improved").map(lane).join("")}</div></div>`;
+  const a = $("#wl-run"); a.hidden = false; a.href = "/run/" + run.id;
+  a.onclick = e => { e.preventDefault(); store.set("ar-welcomed", "1"); location.href = a.href; };
+}
+
 /* ------------------------------------------------------------- router + app */
 function go(path){ history.pushState({}, "", path); route(); window.scrollTo(0, 0); $("#app")?.focus({preventScroll: true}); }
 let ROUTE_N = 0, LAST_PATH = "";
@@ -1597,6 +1825,7 @@ document.documentElement.lang = LANG;
 (async () => {
   [HEALTH, AUTH] = await Promise.all([api("/api/health").catch(() => null), api("/api/auth/status").catch(() => null)]);
   const code = new URLSearchParams(location.search).get("code");
+  if (location.pathname === "/welcome" || (location.pathname === "/" && !store.get("ar-welcomed") && !location.search)) return welcomeScreen();
   if (location.pathname === "/pair" && code && AUTH?.accounts) return pairScreen(code);
   if (AUTH?.accounts && !AUTH.user) return authScreen();
   if (AUTH?.user){ ME = {user: AUTH.user, device_id: AUTH.device_id, device: AUTH.device};
