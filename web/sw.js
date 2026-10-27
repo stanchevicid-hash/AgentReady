@@ -1,6 +1,6 @@
 // App shell cache so the installed phone app opens instantly and offline.
 // Data (/api/*) always goes to the network: results must be real and current, never a stale copy.
-const CACHE = "agentready-v4";
+const CACHE = "agentready-v5";
 const SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", e => {
