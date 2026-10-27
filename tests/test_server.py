@@ -120,5 +120,16 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(pc.call("GET", "/api/runs")[0], 401)
 
 
+class InterruptedRunTests(unittest.TestCase):
+    def test_runs_left_running_are_marked(self):
+        root = Path(tempfile.mkdtemp())
+        for rid, status in (("a", "running"), ("b", "done")):
+            (root / rid).mkdir()
+            (root / rid / "run.json").write_text(json.dumps({"id": rid, "status": status}))
+        self.assertEqual(server.mark_interrupted(root), 1)
+        self.assertEqual(json.loads((root / "a" / "run.json").read_text())["status"], "error")
+        self.assertEqual(json.loads((root / "b" / "run.json").read_text())["status"], "done")
+
+
 if __name__ == "__main__":
     unittest.main()

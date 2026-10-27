@@ -15,7 +15,7 @@ Coding and Agentic Engineering
 ### What it does
 AgentReady audits how well AI coding agents work inside a specific repository, and then makes them work better. It plants real defects in the code (off-by-one errors, flipped comparisons, removed implementations) and keeps only those the repo's own test suite catches. NVIDIA Nemotron 3 Super writes a realistic bug report for each one, then a fleet of Nemotron Super coding agents tries to fix them in isolated sandboxes. Every attempt is graded objectively by the hidden, untouched test suite.
 
-Nemotron 3 Nano triages each attempt (did the agent get lost, fail to find the test command, trust outdated docs?), Tavily pulls the official docs of the repo's tools, and Nemotron 3 Ultra synthesizes the root causes and writes an AGENTS.md grounded in facts AgentReady verified itself. Then the same tasks run again with the new instructions. The dashboard shows the before/after score with a 95% confidence interval, steps and tokens per solved task, a replay of every agent step, and a downloadable AGENTS.md and badge.
+Nemotron 3 Nano triages each attempt (did the agent get lost, fail to find the test command, trust outdated docs?), Tavily pulls the official docs of the repo's tools, and Nemotron 3 Ultra synthesizes the root causes and writes an AGENTS.md grounded in facts AgentReady verified itself. Then the same tasks run again with the new instructions. The dashboard shows the before/after score with a 95% confidence interval, steps and tokens per solved task, a replay of every agent step, and a downloadable AGENTS.md and badge. A second tool, the Verifier, checks a diff an AI assistant wrote: does it apply, parse, leave tests alone, avoid risky code and invented packages, and pass the repo's tests, plus a Nemotron review. It works as an installable app on PC and phone, in English and Russian, accessible (WCAG 2.1 AA) and private by design (self-hosted, no tracking).
 
 ### Why we built it
 Most code is now written with AI agents, yet every repository is a different maze. Teams write agent instruction files by guesswork and never find out whether they help, while agents burn tokens rediscovering how to run tests or following a README that drifted from the code. Model benchmarks tell you which model is smart; nothing told you whether *your* repo lets agents succeed, or what to change. AgentReady closes that loop with evidence instead of opinions.
@@ -40,10 +40,11 @@ JavaScript/TypeScript and Go defect injectors, a GitHub App that runs on every P
 - Code: `<https://github.com/you/AgentReady>` (MIT license)
 
 ## Testing instructions for judges
-1. Open the demo URL. A finished example run is listed under "Recent runs": open it to see the full report.
-2. To start a new run, click "Use the built-in parcelpost demo", enter the access token, and click "Test this repo". A run takes a few minutes; the page updates live.
-3. Click any finished row in "Every agent attempt" to replay that agent's steps.
-4. Locally: see README "Quick start" (Python 3.9+, no pip installs).
+1. Open the demo URL. Finished real runs are listed under **Recent** on the Tester page (and in **History**): open one to see the full report. `Ctrl+K` jumps to any page or run.
+2. In a run, the tabs show: **Overview** (score before/after with 95% ranges), **Attempts** (every agent attempt; click a row to replay each step), **Causes** (Nemotron Ultra's root causes and Nano's triage), **AGENTS.md** (old vs new, copy or download), **Tasks & log**. "PDF / print" saves the whole report.
+3. To start a new run: click "Try the **parcelpost** demo", then "Test this repo", and enter the access token. The page updates live; "Stop" ends it early, "Run again" repeats it with the same settings.
+4. **Verifier**: paste a diff an AI wrote (try `docs/sample-patches/bad-change.patch` with the parcelpost demo) to get a 0-100 score, every check, and the diff with colours.
+5. Locally: README "Quick start" (Python 3.9+, no pip installs). The app installs on a phone (PWA) and pairs with the PC by QR code.
 
 ## 3-minute video script
 
