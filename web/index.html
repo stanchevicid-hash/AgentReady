@@ -626,10 +626,15 @@ en: {
   brandH: "Make your repo work for AI agents.",
   brandP: "Test, fix and prove how well coding agents work in your code. From your PC or your phone.",
   brandL: ["Agents fix real bugs in your repo", "Verify code an AI wrote", "PC and phone, one account, live"],
-  setupH: "Create your account", setupP: "The first account owns this AgentReady server.",
+  setupH: "Create your account", setupP: "The first account owns this AgentReady server. Each account sees only its own history.",
   loginH: "Sign in", loginP: "Welcome back.",
-  user: "Username", pass: "Password", pass2: "Repeat password", passMismatch: "Passwords don't match",
-  createBtn: "Create account", loginBtn: "Sign in",
+  user: "Email", pass: "Password", pass2: "Repeat password", passMismatch: "Passwords don't match",
+  createBtn: "Create account", loginBtn: "Sign in", joinBtn: "Create account",
+  joinH: "Create your account", joinP: "Your runs and checks are yours: nobody else on this server sees them.",
+  haveAcc: "Already have an account?", noAcc: "New here?",
+  inviteCode: "Invite code", inviteHint: "From the invite link someone with an account sent you.",
+  inviteH: "Invite someone", inviteP: "They get their own account, with their own history. One link, one person, valid 24 h.",
+  inviteBtn: "Make an invite link", inviteExp: "Works once, for 24 hours.",
   pairH: "Connecting this device…", pairOk: "Connected", pairBad: "Could not connect",
   pairRetry: "Ask for a new QR code on your PC, or sign in with your password.",
   account: "Account", signedAs: u => `Signed in as <b>${u}</b>`, logout: "Sign out",
@@ -642,7 +647,7 @@ en: {
   ago: s => s < 60 ? "now" : s < 3600 ? `${Math.floor(s/60)} min ago` : s < 86400 ? `${Math.floor(s/3600)} h ago` : `${Math.floor(s/86400)} d ago`,
   fromDev: d => `${d}:`, open: "Open",
   liveH: "Live across devices",
-  eraseH: "Delete all my data", eraseP: "Removes every run, verification, the account and all signed-in devices from this server. This cannot be undone.",
+  eraseH: "Delete all my data", eraseP: "Removes your runs, verifications, your account and all your signed-in devices from this server. Other people's accounts stay. This cannot be undone.",
   eraseBtn: "Delete everything", erasePw: "Type your password to confirm",
   wl: {
     kicker: "NVIDIA Nemotron · Nebius Token Factory",
@@ -776,10 +781,15 @@ ru: {
   brandH: "Сделайте репозиторий удобным для ИИ-агентов.",
   brandP: "Проверяйте, чините и доказывайте, как агенты работают с вашим кодом. С компьютера или с телефона.",
   brandL: ["Агенты чинят настоящие баги", "Проверка кода, написанного ИИ", "ПК и телефон, один аккаунт, вживую"],
-  setupH: "Создайте аккаунт", setupP: "Первый аккаунт становится владельцем этого сервера AgentReady.",
+  setupH: "Создайте аккаунт", setupP: "Первый аккаунт становится владельцем этого сервера AgentReady. Каждый аккаунт видит только свою историю.",
   loginH: "Вход", loginP: "С возвращением.",
-  user: "Логин", pass: "Пароль", pass2: "Повторите пароль", passMismatch: "Пароли не совпадают",
-  createBtn: "Создать аккаунт", loginBtn: "Войти",
+  user: "Email", pass: "Пароль", pass2: "Повторите пароль", passMismatch: "Пароли не совпадают",
+  createBtn: "Создать аккаунт", loginBtn: "Войти", joinBtn: "Создать аккаунт",
+  joinH: "Создайте аккаунт", joinP: "Ваши прогоны и проверки видите только вы: другим на этом сервере они не видны.",
+  haveAcc: "Уже есть аккаунт?", noAcc: "Впервые здесь?",
+  inviteCode: "Код приглашения", inviteHint: "Из ссылки-приглашения от человека с аккаунтом.",
+  inviteH: "Пригласить человека", inviteP: "У него будет свой аккаунт и своя история. Одна ссылка — один человек, действует 24 ч.",
+  inviteBtn: "Создать ссылку-приглашение", inviteExp: "Срабатывает один раз, 24 часа.",
   pairH: "Подключаем устройство…", pairOk: "Подключено", pairBad: "Не удалось подключить",
   pairRetry: "Попросите новый QR-код на компьютере или войдите по паролю.",
   account: "Аккаунт", signedAs: u => `Вы вошли как <b>${u}</b>`, logout: "Выйти",
@@ -792,7 +802,7 @@ ru: {
   ago: s => s < 60 ? "сейчас" : s < 3600 ? `${Math.floor(s/60)} мин назад` : s < 86400 ? `${Math.floor(s/3600)} ч назад` : `${Math.floor(s/86400)} дн назад`,
   fromDev: d => `${d}:`, open: "Открыть",
   liveH: "Вживую на всех устройствах",
-  eraseH: "Удалить все мои данные", eraseP: "Удаляет с этого сервера все прогоны, проверки, аккаунт и все подключённые устройства. Отменить нельзя.",
+  eraseH: "Удалить все мои данные", eraseP: "Удаляет с этого сервера ваши прогоны, проверки, аккаунт и все ваши устройства. Аккаунты других людей остаются. Отменить нельзя.",
   eraseBtn: "Удалить всё", erasePw: "Введите пароль для подтверждения",
   wl: {
     kicker: "NVIDIA Nemotron · Nebius Token Factory",
@@ -888,36 +898,44 @@ const post = (path, body, hdr = {}) => api(path, {method: "POST", headers: {"Con
 
 /* ------------------------------------------------------------- sign in + pairing */
 let ME = null, AUTH = null;
-function authScreen(){
+function authScreen(mode, invite){
   clearInterval(POLL); clearInterval(FEED);
   const t = L(), setup = AUTH && !AUTH.has_users;
+  mode = setup ? "setup" : (mode || "login");
+  const join = mode === "signup", needInvite = join && AUTH?.signup !== "open";
+  const title = setup ? t.setupH : join ? t.joinH : t.loginH, sub = setup ? t.setupP : join ? t.joinP : t.loginP;
   document.body.innerHTML = `<div class="authwrap">
     <div class="authbrand">
-      <a class="mark" href="/">${LOGO} AgentReady</a>
+      <a class="mark" href="/welcome">${LOGO} AgentReady</a>
       <div style="margin:28px 0"><h1>${t.brandH}</h1><p>${t.brandP}</p>
         <ul>${t.brandL.map((x, i) => `<li>${ic(["bug","verify","phone"][i])}${x}</li>`).join("")}</ul></div>
-      <div class="foot faint" style="font-size:13px">NVIDIA Nemotron · Nebius Token Factory</div>
+      <div class="foot faint" style="font-size:13px"><a href="/welcome" style="color:#C9D1E4">${t.aboutApp}</a> · NVIDIA Nemotron · Nebius Token Factory</div>
     </div>
     <div class="authform"><form class="sheet authcard" id="af" style="position:relative">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="avatar">${ic("lock", 'style="width:16px;height:16px"')}</span><h2 style="margin:0">${setup ? t.setupH : t.loginH}</h2></div>
-      <p class="muted" style="margin:0 0 6px;font-size:14px">${setup ? t.setupP : t.loginP}</p>
-      <label for="au">${t.user}</label><input id="au" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
-      <label for="ap">${t.pass}</label><input id="ap" name="password" type="password" autocomplete="${setup ? "new-password" : "current-password"}" required minlength="${setup ? 8 : 1}">
-      ${setup ? `<label for="ap2">${t.pass2}</label><input id="ap2" type="password" autocomplete="new-password" required minlength="8">` : ""}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="avatar">${ic("lock", 'style="width:16px;height:16px"')}</span><h2 style="margin:0">${title}</h2></div>
+      <p class="muted" style="margin:0 0 6px;font-size:14px">${sub}</p>
+      <label for="au">${t.user}</label><input id="au" name="username" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      <label for="ap">${t.pass}</label><input id="ap" name="password" type="password" autocomplete="${mode === "login" ? "current-password" : "new-password"}" required minlength="${mode === "login" ? 1 : 8}">
+      ${mode !== "login" ? `<label for="ap2">${t.pass2}</label><input id="ap2" type="password" autocomplete="new-password" required minlength="8">` : ""}
       ${setup && AUTH.setup_code_needed ? `<label for="asc">${t.setupCode}</label><input id="asc" autocomplete="off" autocapitalize="off" spellcheck="false" required>
         <div class="hint" style="margin-top:4px">${t.setupCodeHint}</div>` : ""}
-      <button class="btn" id="ab" type="submit">${setup ? t.createBtn : t.loginBtn}</button>
+      ${needInvite ? `<label for="ainv">${t.inviteCode}</label><input id="ainv" autocomplete="off" autocapitalize="off" spellcheck="false" required value="${esc(invite || "")}">
+        <div class="hint" style="margin-top:4px">${t.inviteHint}</div>` : ""}
+      <button class="btn" id="ab" type="submit">${setup ? t.createBtn : join ? t.joinBtn : t.loginBtn}</button>
       <div class="err" id="ae" role="alert"></div>
+      ${setup ? "" : `<p style="text-align:center;font-size:14px;margin:14px 0 0">${join ? t.haveAcc : t.noAcc} <a href="#" id="aswap">${join ? t.loginBtn : t.joinBtn}</a></p>`}
       <div style="text-align:center;margin-top:8px"><button type="button" class="tab" id="alang">${LANG === "ru" ? "English" : "Русский"}</button></div>
     </form></div></div>`;
-  $("#alang").onclick = () => { LANG = LANG === "ru" ? "en" : "ru"; store.set("ar-lang", LANG); authScreen(); };
+  $("#alang").onclick = () => { LANG = LANG === "ru" ? "en" : "ru"; store.set("ar-lang", LANG); authScreen(mode, invite); };
+  const sw = $("#aswap"); if (sw) sw.onclick = e => { e.preventDefault(); authScreen(join ? "login" : "signup", invite); };
   $("#af").onsubmit = async e => {
     e.preventDefault();
-    if (setup && $("#ap").value !== $("#ap2").value) return $("#ae").textContent = t.passMismatch;
+    if (mode !== "login" && $("#ap").value !== $("#ap2").value) return $("#ae").textContent = t.passMismatch;
     $("#ab").disabled = true; $("#ae").textContent = "";
+    const body = {username: $("#au").value, password: $("#ap").value, setup_code: $("#asc")?.value || "", invite: $("#ainv")?.value || ""};
     try {
-      await post(setup ? "/api/auth/setup" : "/api/auth/login", {username: $("#au").value, password: $("#ap").value, setup_code: $("#asc")?.value || ""});
-      location.replace(location.pathname === "/login" ? "/" : location.pathname);
+      await post({setup: "/api/auth/setup", signup: "/api/auth/signup", login: "/api/auth/login"}[mode], body);
+      location.replace(["/login", "/join", "/pair"].includes(location.pathname) ? "/" : location.pathname);
     } catch(err){ $("#ae").textContent = err.message; $("#ab").disabled = false; }
   };
 }
@@ -1576,6 +1594,9 @@ async function settingsPage(){
         <p class="muted" style="margin:0 0 14px;font-size:14px">${t.connectP}</p>
         <div id="pairbox"><button class="btn" id="pairgo">${ic("link")}${t.connectBtn}</button></div></section>
       <section class="sheet block"><div class="block-head"><h3>${t.devicesH}</h3></div><div class="devices" id="devs"></div></section>
+      <section class="sheet block"><h3 style="margin-bottom:6px">${ic("link", 'style="vertical-align:-5px;margin-right:6px"')}${t.inviteH}</h3>
+        <p class="muted" style="margin:0 0 14px;font-size:14px">${t.inviteP}</p>
+        <div id="invbox"><button class="btn ghost" id="invgo">${t.inviteBtn}</button></div></section>
       <section class="sheet block"><h3 style="margin-bottom:6px">${t.account}</h3>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="avatar" style="width:40px;height:40px;font-size:17px">${esc(ME.user[0].toUpperCase())}</span>
           <span>${t.signedAs(esc(ME.user))}</span><button class="btn ghost small danger" id="logout" style="margin-left:auto">${ic("logout", 'style="width:16px;height:16px"')}${t.logout}</button></div></section>
@@ -1594,6 +1615,12 @@ async function settingsPage(){
   if (!ME) return;
   $("#logout").onclick = async () => { await post("/api/auth/logout").catch(() => {}); location.replace("/login"); };
   $("#pairgo").onclick = showPair;
+  $("#invgo").onclick = async () => {
+    let r; try { r = await post("/api/invite"); } catch(err){ return toast(err.message); }
+    $("#invbox").innerHTML = `<div class="field"><input id="invurl" readonly value="${esc(r.url)}" aria-label="${t.inviteH}">
+      <button class="btn" id="invcopy">${ic("copy", 'style="width:16px;height:16px"')}${t.copyMd}</button></div><p class="hint">${t.inviteExp}</p>`;
+    $("#invcopy").onclick = async () => { try { await navigator.clipboard.writeText(r.url); toast(t.copied); } catch { $("#invurl").select(); } };
+  };
   $("#erase").onsubmit = async e => {
     e.preventDefault();
     if (!confirm(t.eraseP)) return;
@@ -1827,9 +1854,9 @@ document.documentElement.lang = LANG;
   const code = new URLSearchParams(location.search).get("code");
   if (location.pathname === "/welcome" || (location.pathname === "/" && !store.get("ar-welcomed") && !location.search)) return welcomeScreen();
   if (location.pathname === "/pair" && code && AUTH?.accounts) return pairScreen(code);
-  if (AUTH?.accounts && !AUTH.user) return authScreen();
+  if (AUTH?.accounts && !AUTH.user) return location.pathname === "/join" ? authScreen("signup", code) : authScreen();
   if (AUTH?.user){ ME = {user: AUTH.user, device_id: AUTH.device_id, device: AUTH.device};
-    if (["/login", "/pair"].includes(location.pathname)) history.replaceState({}, "", "/");
+    if (["/login", "/pair", "/join"].includes(location.pathname)) history.replaceState({}, "", "/");
     pollFeed(); FEED = setInterval(pollFeed, 4000); updateBadge(); }
   if (!navigator.onLine) setOffline(true);
   route();

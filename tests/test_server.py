@@ -107,16 +107,48 @@ class ServerTests(unittest.TestCase):
         with urllib.request.urlopen(self.base + "/") as r:
             self.assertEqual(r.headers.get("X-Frame-Options"), "DENY")
             self.assertIn("frame-ancestors 'none'", r.headers.get("Content-Security-Policy", ""))
-        # stopping needs a run that is actually in progress
-        self.assertEqual(pc.call("POST", "/api/runs/nope/cancel", {})[0], 409)
+        # stopping someone's run needs it to exist (and be yours)
+        self.assertEqual(pc.call("POST", "/api/runs/nope/cancel", {})[0], 404)
 
-        # erase everything: needs the password, then the account, devices and results are gone
-        (self.runs / "20990101-000000-abcd").mkdir()
-        (self.runs / "20990101-000000-abcd" / "run.json").write_text("{}")
+        # separate accounts, separate histories
+        def run(rid, owner):
+            (self.runs / rid).mkdir()
+            rec = {"id": rid, "status": "done", "created": 1, "options": {"source": "x"}, "owner": owner}
+            (self.runs / rid / "run.json").write_text(json.dumps(rec))
+        run("20990101-000000-old0", "")  # saved before accounts were separate: the owner's
+        run("20990101-000000-ana1", "ana")
+        run("20990101-000000-bob1", "bob@example.com")
+        ids = lambda c: sorted(r["id"] for r in c.call("GET", "/api/runs")[1])
+        bob = Client(self.base, PC)
+        st, r = bob.call("POST", "/api/auth/signup", {"username": "Bob@Example.com", "password": "another pass"})
+        self.assertEqual(st, 200, r)  # on this computer anyone may make an account
+        self.assertEqual(r["user"], "bob@example.com")
+        self.assertEqual(ids(pc), ["20990101-000000-ana1", "20990101-000000-old0"])
+        self.assertEqual(ids(bob), ["20990101-000000-bob1"])
+        self.assertEqual(bob.call("GET", "/api/runs/20990101-000000-ana1")[0], 404)
+        self.assertEqual(bob.call("DELETE", "/api/runs/20990101-000000-ana1")[0], 404)
+        self.assertFalse(any(a["user"] != "bob@example.com" for a in bob.call("GET", "/api/activity?since=0")[1]["items"]))
+        # from another device, joining needs an invite from an existing account; each invite works once
+        guest = Client(self.base, PHONE)
+        guest.host = "agentready.example"
+        self.assertEqual(guest.call("POST", "/api/auth/signup", {"username": "eve@example.com", "password": "12345678"})[0], 401)
+        st, inv = pc.call("POST", "/api/invite", {})
+        self.assertIn("/join?code=", inv["url"])
+        self.assertEqual(guest.call("POST", "/api/auth/signup", {"username": "eve@example.com", "password": "12345678",
+                                                                  "invite": inv["code"]})[0], 200)
+        other = Client(self.base, PHONE)
+        other.host = "agentready.example"
+        self.assertEqual(other.call("POST", "/api/auth/signup", {"username": "mal@example.com", "password": "12345678",
+                                                                  "invite": inv["code"]})[0], 401)
+        # erasing your data leaves everyone else's alone
+        self.assertEqual(bob.call("POST", "/api/erase", {"password": "another pass"})[0], 200)
+        self.assertFalse((self.runs / "20990101-000000-bob1").exists())
+        self.assertTrue((self.runs / "20990101-000000-ana1").exists())
+
         self.assertEqual(pc.call("POST", "/api/erase", {"password": "nope"})[0], 401)
         self.assertEqual(pc.call("POST", "/api/erase", {"password": "correct horse"})[0], 200)
-        self.assertEqual(sorted(p.name for p in self.runs.iterdir()), ["_auth"])
-        self.assertFalse(pc.call("GET", "/api/auth/status")[1]["has_users"])
+        self.assertEqual(sorted(p.name for p in self.runs.iterdir()), ["_auth", "_verify"])
+        self.assertTrue(guest.call("GET", "/api/auth/status")[1]["has_users"])  # eve is still there
         self.assertEqual(pc.call("GET", "/api/runs")[0], 401)
 
 
