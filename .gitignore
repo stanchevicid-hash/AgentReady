@@ -10,3 +10,5 @@ _to_delete/
 .remember/
 .claude/
 .playwright-mcp/
+demo-runs/
+start-demo.bat
