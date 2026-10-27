@@ -133,6 +133,16 @@ class Auth:
                     return True
         return False
 
+    def erase(self, user: str, password: str) -> None:
+        """Delete the account and every session (the right to have your data erased)."""
+        with self._lock:
+            u = self.data["users"].get(user)
+            if not u or not hmac.compare_digest(u["hash"], _hash_pw(password or "", bytes.fromhex(u["salt"]))):
+                raise PermissionError("wrong password")
+            self.data = {"users": {}, "sessions": {}}
+            self._pair.clear()
+            self._save()
+
     # ------------------------------------------------------------ pairing
     def pair_code(self, user: str) -> str:
         code = secrets.token_urlsafe(9)

@@ -118,6 +118,16 @@ Agents run model-written shell commands, so AgentReady isolates them:
 
 For untrusted repositories, use the docker or nebius executor.
 
+## Privacy
+
+AgentReady is self-hosted: there is no AgentReady company server, no analytics, no ads and no tracking.
+
+- **Stored on your server only** (in `runs/`): your runs and verifications (repo name, generated tasks, agent steps, results), the owner account (username and a PBKDF2 password hash) and signed-in devices (a device name like "iPhone · Safari", sign-in time, last activity). Session tokens are stored only as hashes. IP addresses are kept in memory only, to slow down password guessing, and are never written to disk.
+- **One cookie**, `ar_session`: the HttpOnly sign-in session, strictly necessary, so there is no cookie banner. Language and theme are kept in the browser's local storage.
+- **Sent to third parties, only when you start something:** the code of the repo you test and the prompts built from it go to **Nebius Token Factory** (NVIDIA Nemotron models) under your own API key; the names of the repo's test runner and dependencies (not your code) go to **Tavily** for documentation search when a Tavily key is set; a public GitHub URL you enter is cloned from **GitHub**. Their own privacy policies apply.
+- **Nothing else leaves the page:** fonts are the system's own (no Google Fonts). The QR code library is loaded from cdnjs only when you open "Connect a phone".
+- **Delete everything** at any time: Settings > *Delete all my data* removes every run, verification, the account and all devices after you confirm with your password. Or delete the `runs/` folder.
+
 ## Deploying on Nebius
 
 Build and push the image (used both by the endpoint and by the jobs):

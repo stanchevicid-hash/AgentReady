@@ -110,7 +110,13 @@ class ServerTests(unittest.TestCase):
         # stopping needs a run that is actually in progress
         self.assertEqual(pc.call("POST", "/api/runs/nope/cancel", {})[0], 409)
 
-        self.assertEqual(pc.call("POST", "/api/auth/logout", {})[0], 200)
+        # erase everything: needs the password, then the account, devices and results are gone
+        (self.runs / "20990101-000000-abcd").mkdir()
+        (self.runs / "20990101-000000-abcd" / "run.json").write_text("{}")
+        self.assertEqual(pc.call("POST", "/api/erase", {"password": "nope"})[0], 401)
+        self.assertEqual(pc.call("POST", "/api/erase", {"password": "correct horse"})[0], 200)
+        self.assertEqual(sorted(p.name for p in self.runs.iterdir()), ["_auth"])
+        self.assertFalse(pc.call("GET", "/api/auth/status")[1]["has_users"])
         self.assertEqual(pc.call("GET", "/api/runs")[0], 401)
 
 

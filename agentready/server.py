@@ -38,9 +38,9 @@ STATIC = {
 }
 PAGES = ("/", "/index.html", "/verify", "/history", "/stats", "/settings", "/login", "/pair")
 COOKIE = "ar_session"
-# the page loads only its own code, Google Fonts and the QR library; it can't be framed (clickjacking)
+# the page loads only its own code and the QR library; it can't be framed (clickjacking)
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
-       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; "
+       "style-src 'self' 'unsafe-inline'; "
        "img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
 LOOPBACK_HOST = re.compile(r"^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$")
 ACTIVE: dict = {}
@@ -300,6 +300,8 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.startswith("/api/auth/"):
             return self._auth_post(path, body)
+        if path == "/api/erase":
+            return self._erase(body)
 
         cancel = re.fullmatch(r"/api/runs/([\w-]+)/cancel", path)
         if path not in ("/api/runs", "/api/verify", "/api/pair") and not cancel:
@@ -361,6 +363,29 @@ class Handler(BaseHTTPRequestHandler):
         me = self.auth.session(token)
         log_activity("device", "paired" if path.endswith("claim") else "signed in", me)
         self._json({"user": me["user"], "device_id": me["id"]}, extra=self._cookie(token, SESSION_DAYS * 86400))
+
+    def _erase(self, body: dict) -> None:
+        """Delete everything this server stores: runs, verifications, the account and all devices."""
+        if is_public():
+            return self._json({"error": "nothing to erase on the public demo"}, 400)
+        me = self._gate()
+        if me is False:
+            return
+        with _lock:
+            if any(p.state.status in ("queued", "running") for p in ACTIVE.values()):
+                return self._json({"error": "stop the run in progress first"}, 409)
+            try:
+                self.auth.erase(me["user"], str(body.get("password", "")))
+            except PermissionError as exc:
+                return self._json({"error": str(exc)}, 401)
+            ACTIVE.clear()
+        root = Path(self.settings.runs_dir)
+        for d in root.iterdir():
+            if d.name == "_auth":
+                continue
+            shutil.rmtree(d, ignore_errors=True) if d.is_dir() else d.unlink(missing_ok=True)
+        ACTIVITY.clear()
+        self._json({"erased": True}, extra=self._cookie("", 0))
 
     def _start_verify(self, body: dict, public: bool, me: dict | None) -> None:
         patch = str(body.get("patch") or "")
