@@ -218,9 +218,11 @@ class TokenFactoryLLM:
                 return content, pt, ct
             except urllib.error.HTTPError as exc:
                 body = exc.read().decode("utf-8", "replace")[:500]
-                last_err = LLMError(f"{model}: HTTP {exc.code}: {body}")
+                hint = {401: "the NEBIUS_API_KEY is not valid",
+                        402: "the Token Factory account is out of credits: top up at tokenfactory.nebius.com"}.get(exc.code)
+                last_err = LLMError(f"{model}: HTTP {exc.code}: {hint or body}")
                 self.usage.add(role, 0, 0, time.time() - started, error=True)
-                if exc.code in (400, 401, 403, 404):
+                if exc.code in (400, 401, 402, 403, 404):  # retrying can't fix these
                     break
             except Exception as exc:  # timeouts, connection resets
                 last_err = LLMError(f"{model}: {exc}")

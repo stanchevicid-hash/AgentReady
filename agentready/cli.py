@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import threading
 import time
@@ -91,7 +92,27 @@ def cmd_run(a) -> int:
     m = st.metrics
     print("\n" + json.dumps({k: m[k] for k in ("score_before", "score_after")}, indent=2))
     print(f"Improved AGENTS.md: {pipe.dir / 'AGENTS.md'}")
+    if os.environ.get("GITHUB_STEP_SUMMARY"):  # shown on the GitHub Actions run page
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+            f.write(ci_summary(st))
+    if a.fail_under is not None and m["score_before"] < a.fail_under:
+        print(f"Agent-Ready score {m['score_before']} is below --fail-under {a.fail_under}: "
+              f"agents struggle in this repo as it is. The AGENTS.md above lifts it to {m['score_after']}.")
+        return 2
     return 0
+
+
+def ci_summary(st) -> str:
+    m, b, i = st.metrics, st.metrics["baseline"], st.metrics["improved"]
+    rows = [("Agent-Ready score", m["score_before"], m["score_after"]),
+            ("Tasks solved", f"{b['success_rate']:.0%}", f"{i['success_rate']:.0%}"),
+            ("Steps per attempt", f"{b['avg_steps']:.1f}", f"{i['avg_steps']:.1f}")]
+    out = ["## AgentReady", "", "| | Current docs | With the new AGENTS.md |", "|---|---|---|"]
+    out += [f"| {k} | {x} | {y} |" for k, x, y in rows]
+    finds = (st.synthesis or {}).get("findings", [])[:5]
+    if finds:
+        out += ["", "**What gets in agents' way**", ""] + [f"- **{f.get('title', '')}**: {f.get('fix', '')}" for f in finds]
+    return "\n".join(out) + "\n"
 
 
 def main(argv=None) -> int:
@@ -111,6 +132,8 @@ def main(argv=None) -> int:
     p.add_argument("--executor", choices=["local", "docker", "nebius"])
     p.add_argument("--test-cmd")
     p.add_argument("--seed", type=int, default=7)
+    p.add_argument("--fail-under", type=int, metavar="SCORE",
+                   help="exit with code 2 when the repo's current Agent-Ready score is below SCORE (for CI)")
     p.set_defaults(fn=cmd_run)
     sub.add_parser("models", help="list Nemotron models on Token Factory and the role mapping").set_defaults(fn=cmd_models)
     sub.add_parser("doctor", help="check keys and connectivity").set_defaults(fn=cmd_doctor)

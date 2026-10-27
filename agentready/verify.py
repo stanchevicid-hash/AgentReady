@@ -16,6 +16,7 @@ import time
 import uuid
 from pathlib import Path
 
+from .llm import LLMError
 from .repo import base_env, detect_test_command, fetch_repo, is_test_file, make_workspace, new_temp_root, \
     python_shim_dir, run_cmd
 
@@ -207,14 +208,18 @@ def verify(source: str, patch: str, llm=None, test_cmd: str | None = None, on_ch
 def _review(llm, prompt: str) -> dict:
     # A reply cut off by the token limit can still contain a complete inner {...} (one issue), which
     # extract_json would happily return. Only accept the top-level object, and retry once with more room.
+    err = None
     for max_tokens in (2500, 6000):
         try:
             out = llm.chat_json("super", [{"role": "user", "content": prompt}], max_tokens=max_tokens)
-        except Exception:
+        except LLMError as exc:
+            if "HTTP 4" in str(exc):  # bad key, no credits: more room won't help, say why
+                raise
+            err = exc
             continue
         if isinstance(out, dict) and "verdict" in out:
             return out
-    raise ValueError("the model did not return a complete review")
+    raise ValueError(f"the model did not return a complete review{f' ({err})' if err else ''}")
 
 
 def score(checks: list[dict]) -> int:
