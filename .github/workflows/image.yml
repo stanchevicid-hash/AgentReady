@@ -1,0 +1,28 @@
+# Builds the container (dashboard + job worker) on every push to main and publishes it to
+# ghcr.io/<owner>/agentready, so a Nebius Serverless Endpoint or Job can pull it without Docker
+# on your own machine. Make the package public once (GitHub > Packages > agentready > settings).
+name: image
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: name
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/agentready" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.name.outputs.image }}:latest,${{ steps.name.outputs.image }}:${{ github.sha }}
