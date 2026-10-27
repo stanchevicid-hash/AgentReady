@@ -23,13 +23,13 @@ PHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Safari/604.1"
 
 class Client:
     def __init__(self, base, ua):
-        self.base, self.ua, self.cookie = base, ua, ""
+        self.base, self.ua, self.cookie, self.host = base, ua, "", None
 
     def call(self, method, path, body=None):
         req = urllib.request.Request(self.base + path, method=method,
                                      data=None if body is None else json.dumps(body).encode(),
                                      headers={"Content-Type": "application/json", "User-Agent": self.ua,
-                                              "Cookie": self.cookie})
+                                              "Cookie": self.cookie, **({"Host": self.host} if self.host else {})})
         try:
             with urllib.request.urlopen(req) as r:
                 status, headers, raw = r.status, r.headers, r.read()
@@ -62,6 +62,13 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(pc.call("GET", "/api/runs")[0], 401)
         self.assertFalse(pc.call("GET", "/api/auth/status")[1]["has_users"])
         self.assertEqual(pc.call("POST", "/api/auth/setup", {"username": "ana", "password": "short"})[0], 400)
+        # a page on another domain rebound to 127.0.0.1 (or another device) can't grab the owner account
+        rebound = Client(self.base, PC)
+        rebound.host = "evil.example"
+        st, r = rebound.call("POST", "/api/auth/setup", {"username": "eve", "password": "correct horse"})
+        self.assertEqual(st, 403, r)
+        self.assertTrue(rebound.call("GET", "/api/auth/status")[1]["setup_code_needed"])
+        self.assertFalse(pc.call("GET", "/api/auth/status")[1]["setup_code_needed"])
         st, me = pc.call("POST", "/api/auth/setup", {"username": "ana", "password": "correct horse"})
         self.assertEqual(st, 200, me)
         self.assertEqual(pc.call("GET", "/api/runs")[0], 200)
@@ -96,6 +103,10 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(pc.call("DELETE", "/api/runs/_auth")[0], 404)
         self.assertEqual(pc.call("DELETE", "/api/runs/_verify")[0], 404)
         self.assertTrue((self.runs / "_auth" / "auth.json").exists())
+        # the app page can't be framed and only loads what it needs
+        with urllib.request.urlopen(self.base + "/") as r:
+            self.assertEqual(r.headers.get("X-Frame-Options"), "DENY")
+            self.assertIn("frame-ancestors 'none'", r.headers.get("Content-Security-Policy", ""))
         # stopping needs a run that is actually in progress
         self.assertEqual(pc.call("POST", "/api/runs/nope/cancel", {})[0], 409)
 

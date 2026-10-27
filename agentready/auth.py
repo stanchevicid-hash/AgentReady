@@ -87,7 +87,9 @@ class Auth:
             if until > time.time():
                 raise PermissionError(f"too many attempts, try again in {int(until - time.time())} s")
             u = self.data["users"].get((username or "").strip())
-            ok = u is not None and hmac.compare_digest(u["hash"], _hash_pw(password or "", bytes.fromhex(u["salt"])))
+            # hash even for an unknown name, so response time doesn't tell which usernames exist
+            salt = bytes.fromhex(u["salt"]) if u else b"\0" * 16
+            ok = hmac.compare_digest(u["hash"] if u else "", _hash_pw(password or "", salt)) and u is not None
             if not ok:
                 count += 1
                 self._fails[ip] = [0, time.time() + LOCK_SECONDS] if count >= MAX_FAILS else [count, 0]

@@ -532,6 +532,7 @@ en: {
   ago: s => s < 60 ? "now" : s < 3600 ? `${Math.floor(s/60)} min ago` : s < 86400 ? `${Math.floor(s/3600)} h ago` : `${Math.floor(s/86400)} d ago`,
   fromDev: d => `${d}:`, open: "Open",
   liveH: "Live across devices",
+  setupCode: "Setup code", setupCodeHint: "Printed in the AgentReady console on the computer it runs on. Not needed when you open it on that computer as localhost.",
   stop: "Stop", stopQ: "Stop this run? Finished attempts are kept.", stopping: "Stopping…",
   again: "Run again", copyMd: "Copy", mdCopied: "AGENTS.md copied", print: "PDF / print",
   elapsed: "elapsed", searchPh: "Search by repository…", found: n => `${n} found`,
@@ -648,6 +649,7 @@ ru: {
   ago: s => s < 60 ? "сейчас" : s < 3600 ? `${Math.floor(s/60)} мин назад` : s < 86400 ? `${Math.floor(s/3600)} ч назад` : `${Math.floor(s/86400)} дн назад`,
   fromDev: d => `${d}:`, open: "Открыть",
   liveH: "Вживую на всех устройствах",
+  setupCode: "Код настройки", setupCodeHint: "Напечатан в консоли AgentReady на компьютере, где он запущен. Не нужен, если открыть там же через localhost.",
   stop: "Остановить", stopQ: "Остановить прогон? Завершённые попытки сохранятся.", stopping: "Останавливаем…",
   again: "Запустить снова", copyMd: "Копировать", mdCopied: "AGENTS.md скопирован", print: "PDF / печать",
   elapsed: "прошло", searchPh: "Поиск по репозиторию…", found: n => `Найдено: ${n}`,
@@ -665,6 +667,7 @@ applyTheme();
 
 /* ------------------------------------------------------------- helpers */
 const $ = (s, el=document) => el.querySelector(s);
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "#";  // links from model/web data: never javascript:
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pct = x => x == null ? "–" : Math.round(x * 100) + "%";
 const num = x => x == null ? "–" : (x >= 10000 ? (x/1000).toFixed(1) + "k" : Math.round(x).toLocaleString(LANG));
@@ -725,6 +728,8 @@ function authScreen(){
       <label for="au">${t.user}</label><input id="au" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
       <label for="ap">${t.pass}</label><input id="ap" name="password" type="password" autocomplete="${setup ? "new-password" : "current-password"}" required minlength="${setup ? 8 : 1}">
       ${setup ? `<label for="ap2">${t.pass2}</label><input id="ap2" type="password" autocomplete="new-password" required minlength="8">` : ""}
+      ${setup && AUTH.setup_code_needed ? `<label for="asc">${t.setupCode}</label><input id="asc" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <div class="hint" style="margin-top:4px">${t.setupCodeHint}</div>` : ""}
       <button class="btn" id="ab" type="submit">${setup ? t.createBtn : t.loginBtn}</button>
       <div class="err" id="ae" role="alert"></div>
       <div style="text-align:center;margin-top:8px"><button type="button" class="tab" id="alang">${LANG === "ru" ? "English" : "Русский"}</button></div>
@@ -735,7 +740,7 @@ function authScreen(){
     if (setup && $("#ap").value !== $("#ap2").value) return $("#ae").textContent = t.passMismatch;
     $("#ab").disabled = true; $("#ae").textContent = "";
     try {
-      await post(setup ? "/api/auth/setup" : "/api/auth/login", {username: $("#au").value, password: $("#ap").value});
+      await post(setup ? "/api/auth/setup" : "/api/auth/login", {username: $("#au").value, password: $("#ap").value, setup_code: $("#asc")?.value || ""});
       location.replace(location.pathname === "/login" ? "/" : location.pathname);
     } catch(err){ $("#ae").textContent = err.message; $("#ab").disabled = false; }
   };
@@ -1121,7 +1126,7 @@ function renderRun(){
     <div class="block-head"><h2>${t.instr}</h2>
       ${r.agents_md ? `<div class="mdtabs"><button class="tab" data-md="after" aria-pressed="${MDVIEW==="after"}">${t.newMd}</button><button class="tab" data-md="before" aria-pressed="${MDVIEW==="before"}">${t.oldMd}</button></div>` : ""}</div>
     ${r.agents_md ? `<div class="md">${MDVIEW === "after" ? md(r.agents_md) : (r.agents_md_before ? md(r.agents_md_before) : `<p class="faint">${t.noOld}</p>`)}</div>` : `<p class="faint">${t.notYet}</p>`}
-    ${(r.research||[]).filter(x => x.url).length ? `<details style="margin-top:12px"><summary>${t.sources(r.research.filter(x=>x.url).length)}</summary><ul>${r.research.filter(x=>x.url).map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a></li>`).join("")}</ul></details>` : ""}
+    ${(r.research||[]).filter(x => x.url).length ? `<details style="margin-top:12px"><summary>${t.sources(r.research.filter(x=>x.url).length)}</summary><ul>${r.research.filter(x=>x.url).map(x => `<li><a href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener noreferrer">${esc(x.title || x.url)}</a></li>`).join("")}</ul></details>` : ""}
   </section>` : ""}
 
   ${RUNTAB === "tasks" ? `

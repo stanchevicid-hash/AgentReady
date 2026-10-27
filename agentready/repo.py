@@ -37,12 +37,23 @@ def fetch_repo(source: str, dest_root: Path) -> Path:
         if proc.returncode != 0:
             raise RuntimeError(f"git clone failed: {proc.stderr.strip()[:400]}")
         shutil.rmtree(dest / ".git", ignore_errors=True)
+        _drop_escaping_links(dest)
     else:
         src = Path(source).expanduser().resolve()
         if not src.is_dir():
             raise RuntimeError(f"not a folder or git URL: {source}")
         shutil.copytree(src, dest, ignore=_ignore)
     return dest
+
+
+def _drop_escaping_links(root: Path) -> None:
+    # a cloned repo could ship README.md -> ~/.ssh/id_rsa; copying would read the target into the run
+    real = root.resolve()
+    for dirpath, dirnames, filenames in os.walk(root):
+        for n in dirnames + filenames:
+            p = Path(dirpath) / n
+            if p.is_symlink() and real not in p.resolve().parents:
+                p.unlink()
 
 
 def make_workspace(source: Path, parent: Path, name: str) -> Path:
