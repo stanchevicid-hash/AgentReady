@@ -8,7 +8,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from agentready import verify as verify_mod  # noqa: E402
 from agentready.verify import score, verify  # noqa: E402
+
+# offline: pretend PyPI knows exactly these projects
+verify_mod.pypi_exists = lambda name: name in ("requests", "numpy")
 
 DEMO = ROOT / "examples" / "parcelpost"
 REL = "src/parcelpost/core/discounts.py"
@@ -50,6 +54,38 @@ class VerifyTests(unittest.TestCase):
         self.assertEqual(by_key(res)["applies"]["status"], "fail")
         self.assertEqual(score(res["checks"]), 0)
 
+
+class StandaloneTests(unittest.TestCase):
+    """No repository: just the code (or a diff) someone got from an AI assistant."""
+
+    def test_plain_code(self):
+        code = "import requests|import leftpadx||def f(x):|    try:|        return eval(x)|    except:|        return None|"
+        res = verify("", code.replace("|", chr(10)))
+        c = by_key(res)
+        self.assertEqual(c["applies"]["status"], "skip")
+        self.assertEqual(c["syntax"]["status"], "pass")
+        self.assertEqual(c["imports"]["status"], "fail")
+        self.assertEqual(c["imports"]["items"], ["leftpadx"])  # requests is real, just not installed
+        self.assertTrue(any("eval()" in i for i in c["risky"]["items"]))
+        self.assertEqual(c["tests"]["status"], "skip")
+        self.assertGreater(score(res["checks"]), 0)
+
+    def test_broken_code(self):
+        c = by_key(verify("", "def f(:|    pass|".replace("|", chr(10))))
+        self.assertEqual(c["syntax"]["status"], "fail")
+
+    def test_diff_without_its_repo(self):
+        nl = chr(10)
+        bad = patch_for("        return 0.12" + nl, "        import leftpadx" + nl + "        return eval('0.12')" + nl)
+        c = by_key(verify("", bad))
+        self.assertEqual(c["applies"]["status"], "skip")
+        self.assertIn("leftpadx", c["imports"]["items"])
+        self.assertTrue(any("eval()" in i for i in c["risky"]["items"]))
+        self.assertNotEqual(c["syntax"]["status"], "fail")  # half a file can't be judged broken
+
+    def test_good_code_scores_full(self):
+        code = "import json||def load(path):|    with open(path) as f:|        return json.load(f)|"
+        self.assertEqual(score(verify("", code.replace("|", chr(10)))["checks"]), 100)
 
 if __name__ == "__main__":
     unittest.main()

@@ -36,7 +36,7 @@ STATIC = {
     "/icon-192.png": "image/png",
     "/icon-512.png": "image/png",
 }
-PAGES = ("/", "/index.html", "/verify", "/history", "/stats", "/settings", "/login", "/pair")
+PAGES = ("/", "/index.html", "/welcome", "/verify", "/history", "/stats", "/settings", "/login", "/pair")
 COOKIE = "ar_session"
 # the page loads only its own code and the QR library; it can't be framed (clickjacking)
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
@@ -393,14 +393,16 @@ class Handler(BaseHTTPRequestHandler):
     def _start_verify(self, body: dict, public: bool, me: dict | None) -> None:
         patch = str(body.get("patch") or "")
         if not patch.strip():
-            return self._json({"error": "paste the diff (patch) the AI wrote"}, 400)
+            return self._json({"error": "paste the code or the diff the AI wrote"}, 400)
+        raw = str(body.get("source") or "").strip()
         try:
-            source = resolve_source(body.get("source", ""), public)
+            source = resolve_source(raw, public) if raw else ""  # no repo: the code is checked on its own
         except ValueError as exc:
             return self._json({"error": str(exc)}, 400)
         vid = verify_mod.new_id()
         path = self._verify_dir() / f"{vid}.json"
-        label = str(body.get("source", ""))[:200]
+        files = verify_mod.changed_files(patch) if verify_mod.is_diff(patch) else []
+        label = raw[:200] or (", ".join(files[:3]) if files else "Code snippet")
         state = {"id": vid, "source": label, "status": "running", "created": time.time(),
                  "checks": [], "files": [], "score": None, "error": "", "device": (me or {}).get("device", ""),
                  "patch": patch[:200_000]}

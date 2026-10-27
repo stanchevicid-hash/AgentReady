@@ -6,6 +6,8 @@ AgentReady plants real bugs in your codebase, sends NVIDIA Nemotron coding agent
 
 Built for the **Nebius x NVIDIA Global AI Hackathon**, Coding and Agentic Engineering track. Every model call goes to **NVIDIA Nemotron on Nebius Token Factory**.
 
+![The intro screen: a real run replayed, before and after the new AGENTS.md](docs/screenshots/welcome.png)
+
 ![A real run on the demo repo: Agent-Ready score 62 to 93, tasks solved 70% to 100%, 19.1 to 13.2 steps per attempt](docs/screenshots/run-overview.png)
 
 | Every agent attempt, step by step | Verify a diff an AI wrote | On the phone |
@@ -103,7 +105,7 @@ The dashboard is an installable app (PWA) with five sections: **Tester** (the ag
 
 ### Verifier: check code an AI wrote
 
-Paste the diff an AI assistant produced (or open a `.patch` file) and the repo it is for. AgentReady applies it to a throwaway copy and checks, for real: the patch applies, the Python parses, tests were not edited, no risky code was added (`eval`, `shell=True`, bare `except`, hard-coded secrets), every imported package actually exists (AI assistants invent libraries), and the repo's own test suite passes before and after. With a key, Nemotron Super adds a review of the diff. The result is a 0-100 score with every check shown. The patched code runs through your tests, so only verify code you would run yourself.
+**No repository needed:** paste any Python an assistant gave you, or a diff, and leave the repository empty. The code is checked on its own (syntax, risky code, hard-coded secrets, packages that don't exist on PyPI, a Nemotron review); add the repository to also check that the patch applies and the tests still pass. Paste the diff an AI assistant produced (or open a `.patch` file) and the repo it is for. AgentReady applies it to a throwaway copy and checks, for real: the patch applies, the Python parses, tests were not edited, no risky code was added (`eval`, `shell=True`, bare `except`, hard-coded secrets), every imported package actually exists (AI assistants invent libraries), and the repo's own test suite passes before and after. With a key, Nemotron Super adds a review of the diff. The result is a 0-100 score with every check shown. The patched code runs through your tests, so only verify code you would run yourself.
 
 ### The demo repository
 
