@@ -290,6 +290,9 @@ class Handler(BaseHTTPRequestHandler):
         if me is False:
             return
         public = is_public()
+        # runs execute the cloned repo's tests: on the public demo only token holders may start or stop them
+        if public and path != "/api/pair" and not os.environ.get("AGENTREADY_ACCESS_TOKEN"):
+            return self._json({"error": "starting runs needs an access token on this public demo"}, 403)
         if cancel:
             with _lock:
                 p = ACTIVE.get(cancel.group(1))
@@ -306,9 +309,6 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"code": code, "url": f"{base}/pair?code={code}", "reachable": reachable,
                                "expires_in": 300})
         if path == "/api/verify":
-            # the patch's code runs through the test suite: never open that to anonymous visitors
-            if public and not os.environ.get("AGENTREADY_ACCESS_TOKEN"):
-                return self._json({"error": "the verifier needs an access token on this public demo"}, 403)
             return self._start_verify(body, public, me)
         return self._start_run(body, public, me)
 
