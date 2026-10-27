@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import hmac
 import json
 import os
 import re
+import secrets
 import shutil
 import socket
 import threading
@@ -36,6 +38,11 @@ STATIC = {
 }
 PAGES = ("/", "/index.html", "/verify", "/history", "/stats", "/settings", "/login", "/pair")
 COOKIE = "ar_session"
+# the page loads only its own code, Google Fonts and the QR library; it can't be framed (clickjacking)
+CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; "
+       "img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+LOOPBACK_HOST = re.compile(r"^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$")
 ACTIVE: dict = {}
 _lock = threading.Lock()
 # what happened on any device, so the phone and the PC see each other's actions
@@ -69,6 +76,7 @@ class Handler(BaseHTTPRequestHandler):
     settings: Settings = None  # set in serve()
     auth: Auth = None          # set in serve()
     lan_url: str = ""          # set in serve() when listening on all interfaces
+    setup_code: str = ""       # set in serve(); creating the owner account from another device needs it
 
     def log_message(self, fmt, *args):  # quieter console
         pass
@@ -80,6 +88,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        if ctype.startswith("text/html"):
+            self.send_header("Content-Security-Policy", CSP)
         for k, v in (extra or {}).items():
             self.send_header(k, v)
         self.end_headers()
@@ -90,7 +102,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def _body(self) -> dict:
         length = int(self.headers.get("Content-Length", "0") or 0)
-        data = json.loads(self.rfile.read(min(length, 1_000_000)) or b"{}")
+        if not 0 <= length <= 1_000_000:
+            raise ValueError("body too large")
+        data = json.loads(self.rfile.read(length) or b"{}")
         if not isinstance(data, dict):
             raise ValueError("expected a JSON object")
         return data
@@ -105,6 +119,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def _ip(self) -> str:
         return self.client_address[0]
+
+    def _local(self) -> bool:
+        """This very computer, opened as localhost. A web page that rebinds its own domain to 127.0.0.1
+        comes from loopback too, but with its own name in Host, so it doesn't count."""
+        return self._ip() in ("127.0.0.1", "::1") and bool(LOOPBACK_HOST.match(self.headers.get("Host", "")))
 
     def _ua(self) -> str:
         return self.headers.get("User-Agent", "")
@@ -179,6 +198,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/auth/status":
             me = None if is_public() else self._me()
             return self._json({"accounts": not is_public(), "has_users": self.auth.has_users(),
+                               "setup_code_needed": not self.auth.has_users() and not self._local(),
                                "user": me and me["user"], "device_id": me and me["id"], "device": me and me["device"]})
         m = re.fullmatch(r"/api/runs/([\w-]+)/badge\.svg", path)
         if m:  # badges are embedded in READMEs, so they stay public
@@ -318,6 +338,11 @@ class Handler(BaseHTTPRequestHandler):
         ua = self._ua()
         try:
             if path == "/api/auth/setup":
+                # whoever creates the first account owns the server: from another device prove you can
+                # see this server's console
+                code = str(body.get("setup_code", "")).strip()
+                if not self._local() and not (self.setup_code and hmac.compare_digest(code, self.setup_code)):
+                    return self._json({"error": "enter the setup code shown in the AgentReady console"}, 403)
                 self.auth.setup(body.get("username", ""), body.get("password", ""))
                 token = self.auth.login(body.get("username", ""), body.get("password", ""), ua, self._ip())
             elif path == "/api/auth/login":
@@ -431,6 +456,7 @@ def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = False)
     Path(settings.runs_dir).mkdir(parents=True, exist_ok=True)
     Handler.settings = settings
     Handler.auth = Auth(Path(settings.runs_dir) / "_auth")
+    Handler.setup_code = secrets.token_urlsafe(9)
     httpd = ThreadingHTTPServer((host, port), Handler)
     url = f"http://{'localhost' if host in ('0.0.0.0', '127.0.0.1') else host}:{port}"
     print(f"AgentReady: {url}  (Ctrl+C to stop)")
@@ -440,6 +466,8 @@ def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = False)
     if open_browser:
         import webbrowser
         threading.Timer(0.8, lambda: webbrowser.open(url)).start()
+    if not is_public() and not Handler.auth.has_users():
+        print(f"No account yet. Creating it from another device needs this setup code: {Handler.setup_code}")
     if not settings.api_key:
         print("WARNING: NEBIUS_API_KEY is not set; runs cannot start until you add it to .env")
     try:

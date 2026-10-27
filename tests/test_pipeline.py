@@ -50,6 +50,21 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(info["env"], {"PYTHONPATH": "src"})
 
 
+class SymlinkTests(unittest.TestCase):
+    def test_links_out_of_a_clone_are_dropped(self):
+        from agentready.repo import _drop_escaping_links
+        root = Path(tempfile.mkdtemp())
+        (root / "a.py").write_text("x = 1")
+        try:
+            (root / "inside.py").symlink_to(root / "a.py")
+            (root / "README.md").symlink_to(Path(tempfile.mkdtemp()))
+        except OSError:
+            self.skipTest("this OS user can't create symlinks")
+        _drop_escaping_links(root)
+        self.assertTrue((root / "inside.py").exists())
+        self.assertFalse((root / "README.md").is_symlink())
+
+
 class PipelineTests(unittest.TestCase):
     def test_end_to_end_with_scripted_model(self):
         runs = Path(tempfile.mkdtemp())
