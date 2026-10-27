@@ -466,6 +466,22 @@ class Handler(BaseHTTPRequestHandler):
         self._json({"id": rid}, HTTPStatus.CREATED)
 
 
+def mark_interrupted(runs_dir: Path) -> int:
+    """Runs left "running" by a server that stopped will never finish: say so instead of spinning forever."""
+    n = 0
+    for f in Path(runs_dir).glob("*/run.json"):
+        try:
+            run = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if run.get("status") in ("queued", "running"):
+            run.update(status="error", error="interrupted: the AgentReady server stopped during this run",
+                       finished=run.get("finished") or f.stat().st_mtime)
+            f.write_text(json.dumps(run, default=str), encoding="utf-8")
+            n += 1
+    return n
+
+
 def _lan_ip() -> str:
     # UDP "connect" sends nothing; it just makes the OS pick the outward-facing interface
     try:
@@ -479,6 +495,7 @@ def _lan_ip() -> str:
 def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = False) -> None:
     settings = Settings.from_env()
     Path(settings.runs_dir).mkdir(parents=True, exist_ok=True)
+    mark_interrupted(Path(settings.runs_dir))
     Handler.settings = settings
     Handler.auth = Auth(Path(settings.runs_dir) / "_auth")
     Handler.setup_code = secrets.token_urlsafe(9)
