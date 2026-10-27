@@ -8,31 +8,35 @@ Coding and Agentic Engineering
 
 ## Project name and tagline
 
-**AgentReady**: does your repo work for AI coding agents? Measure it, fix it, prove it.
+AgentReady: find out where AI coding agents get stuck in your repo, and check whether new instructions help.
 
 ## Description (paste into Devpost)
 
 ### What it does
-AgentReady audits how well AI coding agents work inside a specific repository, and then makes them work better. It plants real defects in the code (off-by-one errors, flipped comparisons, removed implementations) and keeps only those the repo's own test suite catches. NVIDIA Nemotron 3 Super writes a realistic bug report for each one, then a fleet of Nemotron Super coding agents tries to fix them in isolated sandboxes. Every attempt is graded objectively by the hidden, untouched test suite.
+AgentReady measures how well coding agents work in one particular repository. It plants small defects in a copy of the code (off-by-one errors, flipped comparisons, deleted function bodies) and keeps only the ones the repo's own tests catch. NVIDIA Nemotron 3 Super writes a bug report for each, describing the symptom without saying where the bug is. Then Nemotron Super agents try to fix them, each in its own sandbox, and the repo's tests decide whether they did.
 
-Nemotron 3 Nano triages each attempt (did the agent get lost, fail to find the test command, trust outdated docs?), Tavily pulls the official docs of the repo's tools, and Nemotron 3 Ultra synthesizes the root causes and writes an AGENTS.md grounded in facts AgentReady verified itself. Then the same tasks run again with the new instructions. The dashboard shows the before/after score with a 95% confidence interval, steps and tokens per solved task, a replay of every agent step, and a downloadable AGENTS.md and badge. A second tool, the Verifier, checks a diff an AI assistant wrote: does it apply, parse, leave tests alone, avoid risky code and invented packages, and pass the repo's tests, plus a Nemotron review. It works as an installable app on PC and phone, in English and Russian, accessible (WCAG 2.1 AA) and private by design (self-hosted, no tracking).
+Nemotron 3 Nano reads every attempt and labels why it failed: the agent got lost, couldn't find the test command, trusted an out-of-date README, and so on. Tavily looks up the official docs of the repo's tools, and Nemotron 3 Ultra turns all of that into an AGENTS.md. The same tasks then run again with the new file. The report shows the score before and after, the success rate with a 95% interval, steps and tokens per solved task, and a replay of every agent step.
 
-### Why we built it
-Most code is now written with AI agents, yet every repository is a different maze. Teams write agent instruction files by guesswork and never find out whether they help, while agents burn tokens rediscovering how to run tests or following a README that drifted from the code. Model benchmarks tell you which model is smart; nothing told you whether *your* repo lets agents succeed, or what to change. AgentReady closes that loop with evidence instead of opinions.
+On the demo repo, the README told agents to run pytest (the project uses unittest), never mentioned that the code lives under src/, and pointed to two files that were renamed long ago. The AGENTS.md that AgentReady wrote addressed all three. The score went from 53 to 93 and agents needed 13.7 steps per task instead of 18.3.
+
+There is also a Verifier for code an assistant wrote. You paste code or a diff, with or without the repository, and it checks for packages that don't exist on PyPI, eval and shell=True, swallowed errors and keys in the code. With the repository it also applies the change and runs the tests. The app installs on a PC or a phone, each account sees only its own history, and it runs on your own server without tracking.
+
+### Why I built it
+Agents waste a lot of their steps working out how a repository is set up: which test command to run, which README still matches the code, where a module went. People write instruction files to help with that, but there is no easy way to see whether those files make a difference. Benchmarks such as SWE-bench compare models across many repositories. I wanted something that looks at a single repository and shows, with numbers, what an instruction file changes there.
 
 ### How it works
-- Defect injection uses Python's AST; each mutation is validated against the real test suite, so every task is gradeable and none is invented.
-- The agent under test is a compact tool-using agent (list, read, search, edit, run, finish) driven by Nemotron 3 Super through Nebius Token Factory's OpenAI-compatible API.
-- Grading restores the original test files first, so agents cannot pass by editing tests.
-- Three Nemotron tiers, each where it fits: Nano for high-volume triage, Super for multi-step tool use, Ultra for the few calls that need deep reasoning.
-- Attempts run in parallel locally, in network-less Docker containers, or as Nebius Serverless Jobs (one job per attempt); the dashboard is deployed as a Nebius Serverless Endpoint.
-- Zero third-party Python dependencies: it runs anywhere Python 3.9+ runs.
+- Defects are injected with Python's ast module and each one is checked against the real test suite, so every task can be graded.
+- The agent under test is a small tool-using agent (list, read, search, edit, run, finish) driven by Nemotron 3 Super through Token Factory's OpenAI-compatible API.
+- Before grading, the original test files are restored, so editing a test never counts as a fix.
+- Each Nemotron model does the job it suits: Nano labels hundreds of attempts, Super does the multi-step tool use, Ultra makes the one or two calls that need the most reasoning.
+- Attempts run in parallel on the host, in Docker containers without network, or as Nebius Serverless Jobs, one job per attempt. The dashboard is a container that runs as a Nebius Serverless Endpoint.
+- It uses only Python's standard library, so it runs wherever Python 3.9 does.
 
 ### Challenges
-Making tasks objectively gradeable (solved with test-validated mutations), keeping agents from gaming the grader (restoring tests), and making results trustworthy despite non-deterministic agents (repeats plus Wilson confidence intervals).
+Every task had to be gradeable without a human, which is why only defects the tests catch are kept. Agents sometimes "fix" a bug by editing the test, so tests are restored before grading. And agents are random, so each task runs several times and the report shows Wilson confidence intervals; when the intervals overlap, the app says so.
 
 ### What's next
-JavaScript/TypeScript and Go defect injectors, a GitHub App that runs on every PR touching docs, and a public leaderboard of agent-readiness for popular open-source projects.
+Defect injectors for JavaScript, TypeScript and Go, a GitHub App that runs AgentReady on pull requests that touch docs, and a public table of results for well-known open-source projects.
 
 ## Links
 - Demo: `<https://your-endpoint-url>` (access token for starting runs: `<token>`; viewing runs needs no token)
@@ -40,24 +44,24 @@ JavaScript/TypeScript and Go defect injectors, a GitHub App that runs on every P
 - Code: `<https://github.com/you/AgentReady>` (MIT license)
 
 ## Testing instructions for judges
-1. Open the demo URL. Finished real runs are listed under **Recent** on the Tester page (and in **History**): open one to see the full report. `Ctrl+K` jumps to any page or run.
-2. In a run, the tabs show: **Overview** (score before/after with 95% ranges), **Attempts** (every agent attempt; click a row to replay each step), **Causes** (Nemotron Ultra's root causes and Nano's triage), **AGENTS.md** (old vs new, copy or download), **Tasks & log**. "PDF / print" saves the whole report.
-3. To start a new run: click "Try the **parcelpost** demo", then "Test this repo", and enter the access token. The page updates live; "Stop" ends it early, "Run again" repeats it with the same settings.
-4. **Verifier**: paste a diff an AI wrote (try `docs/sample-patches/bad-change.patch` with the parcelpost demo) to get a 0-100 score, every check, and the diff with colours.
+1. Open the demo URL. The first page explains the project and replays a real run. Click "Open AgentReady"; finished runs are listed under Recent on the Tester page and in History. `Ctrl+K` jumps to any page or run.
+2. A run has five tabs. Overview has the score before and after with 95% ranges. Attempts lists every agent attempt; click one to replay its steps. Causes has Nemotron Ultra's root causes and Nano's labels. AGENTS.md shows the old and new file. Tasks & log has the rest. "PDF / print" saves the report.
+3. To start a run, click "Try the parcelpost demo", then "Test this repo", and enter the access token. The page updates live. "Stop" ends it early and "Run again" repeats it with the same settings.
+4. Verifier: click "Try AI-written code", then Verify. No repository is needed. To see the tests run as well, paste `docs/sample-patches/bad-change.patch` and use `example:parcelpost` as the repository.
 5. Locally: README "Quick start" (Python 3.9+, no pip installs). The app installs on a phone (PWA) and pairs with the PC by QR code.
 
 ## 3-minute video script
 
 | Time | On screen | Voice-over |
 |---|---|---|
-| 0:00-0:15 | Dashboard home | "Most code is now written by AI agents. But does your repo actually let them succeed? AgentReady measures it." |
-| 0:15-0:40 | Start the parcelpost demo; stages light up; tasks appear | "It plants real bugs your test suite catches. Nemotron Super writes the bug report a user would file, without saying where the bug is." |
-| 0:40-1:10 | Agent lanes filling live, red failed steps | "Nemotron Super coding agents attempt every task in parallel sandboxes, on Nebius Token Factory. Each mark is a step. Watch them try pytest, which this repo doesn't use, and wander." |
-| 1:10-1:35 | Open one failed replay | "Here's a replay: the README told it to run pytest, imports fail because the code lives under src. Nemotron Nano triages every attempt like this." |
-| 1:35-2:00 | Findings + AGENTS.md | "Nemotron Ultra finds the root causes across all runs and writes an AGENTS.md, grounded in the test command we verified and docs Tavily found." |
-| 2:00-2:30 | Improved lanes: shorter, greener; scoreboard | "Then the exact same tasks again. Shorter runs, more solved, fewer tokens per fix, with a confidence interval, not a vibe." |
-| 2:30-2:50 | Models panel, Nebius jobs mention, badge | "Three Nemotron tiers, each where it fits. Attempts can fan out as Nebius Serverless Jobs; the dashboard runs as a Serverless Endpoint." |
-| 2:50-3:00 | Download AGENTS.md | "AgentReady. Make your repo work for the agents that work on it." |
+| 0:00-0:15 | The intro screen with the replayed run | "Coding agents spend a lot of their steps just figuring out how a repo works. AgentReady measures how much, in your repo." |
+| 0:15-0:40 | Start the parcelpost demo; stages light up; tasks appear | "It plants small bugs that the repo's own tests catch. Nemotron Super writes a bug report for each one, without saying where the bug is." |
+| 0:40-1:10 | Agent lanes filling live, red failed steps | "Nemotron Super agents work on every task in parallel, each in its own sandbox, through Nebius Token Factory. Each mark is one step. The red ones are commands that failed, like pytest: the README says pytest, but this repo uses unittest." |
+| 1:10-1:35 | Open one failed replay | "In this replay the agent follows the README, runs pytest, and the imports fail because the code lives under src. Nemotron Nano labels every attempt like this one." |
+| 1:35-2:00 | Causes tab, then the AGENTS.md tab | "Nemotron Ultra reads all of those labels and writes an AGENTS.md. The test command in it is one AgentReady actually ran, and the doc links come from Tavily." |
+| 2:00-2:30 | Improved lanes, then the Overview tab | "Then the same tasks again, with the new file. The runs are shorter and more of them pass. The score comes with a 95% interval, so you can tell a real change from luck." |
+| 2:30-2:50 | Verifier with the sample snippet | "It also checks code an assistant wrote. This snippet imports a package that doesn't exist and has an API key in it." |
+| 2:50-3:00 | Download AGENTS.md | "The AGENTS.md is a normal file you can commit. AgentReady is open source." |
 
 Record with real numbers from a real run; do not edit them.
 

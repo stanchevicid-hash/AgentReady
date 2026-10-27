@@ -58,12 +58,12 @@ nav.side .mark{color:#fff}
 .mark svg{display:block}
 .navlink{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;color:#AEB8D0;font-weight:500;transition:background .15s,color .15s}
 .navlink:hover{background:rgba(255,255,255,.06);color:#fff}
-.navlink[aria-current="page"]{background:linear-gradient(135deg,#2F5BEA,#5B7CF0);color:#fff;box-shadow:0 6px 18px -8px #2F5BEA}
+.navlink[aria-current="page"]{background:#26314F;color:#fff;box-shadow:inset 3px 0 0 #6F8FFF}
 .navfoot{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding:12px 8px 0;border-top:1px solid rgba(255,255,255,.08)}
 .navfoot .who{font-size:13px;color:#fff;font-weight:600;display:flex;align-items:center;gap:8px}
 .navfoot .who small{display:block;font-weight:400;color:#8C96AA}
 .navfoot .chip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#C9D1E4}
-.avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#2F5BEA,#1E8A5A);color:#fff;font:700 13px var(--display);flex:none}
+.avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#2F5BEA;color:#fff;font:700 13px var(--display);flex:none}
 main.content{min-width:0;padding:0 28px 60px}
 .wrap{max-width:1120px;margin:0 auto}
 .topbar{display:flex;align-items:center;gap:10px;padding:20px 0 6px;flex-wrap:wrap}
@@ -77,17 +77,12 @@ button.chip{cursor:pointer;font-weight:600;color:var(--ink)}
 nav.tabs{display:none}
 
 .sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;box-shadow:0 1px 2px rgba(24,33,58,.04),0 10px 28px -18px rgba(24,33,58,.25)}
-.pagehero{position:relative;overflow:hidden;margin:16px 0 18px;padding:24px;border-radius:18px;color:#fff;
-  background:radial-gradient(120% 140% at 100% 0%,#3D63F0 0%,rgba(61,99,240,0) 55%),radial-gradient(90% 120% at 0% 100%,#1E8A5A 0%,rgba(30,138,90,0) 50%),#141B30}
-.pagehero h1{color:#fff;max-width:22ch}
-.pagehero p{margin:8px 0 0;color:#C9D1E4;max-width:56ch}
-.pagehero .steps4{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-top:18px}
-.pagehero .steps4 div{color:#fff}
-.pagehero .steps4 svg.i{color:#9DB3FF}
-.pagehero .heroico{position:absolute;right:-20px;bottom:-30px;opacity:.08;width:200px;height:200px;stroke-width:1.2;color:#fff}
+.pagehero{margin:22px 0 20px;padding:0 0 18px;border-bottom:1px solid var(--rule)}
+.pagehero h1{max-width:24ch}
+.pagehero p{margin:8px 0 0;color:var(--ink-2);max-width:62ch}
 /* sign in */
 .authwrap{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
-.authbrand{background:radial-gradient(120% 120% at 100% 0%,#3D63F0 0%,rgba(61,99,240,0) 55%),radial-gradient(90% 120% at 0% 100%,#1E8A5A 0%,rgba(30,138,90,0) 55%),#141B30;color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.authbrand{background:#141B30;color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between}
 .authbrand .mark{color:#fff;padding:0}
 .authbrand h1{color:#fff;font-size:clamp(30px,3.6vw,46px);max-width:14ch;margin:0 0 14px}
 .authbrand p{color:#C9D1E4;max-width:40ch;margin:0}
@@ -118,7 +113,7 @@ h3{font-size:16px;font-weight:600}
 .notice ol{margin:6px 0 0;padding-left:20px;font-size:14px;color:var(--ink-2)}
 code{font-family:var(--mono);font-size:12.5px;background:var(--paper);padding:1px 5px;border-radius:4px}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:8px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
-.grid{display:grid;gap:18px}
+.grid{display:grid;gap:18px;align-items:start}
 .g2{grid-template-columns:1.2fr 1fr} .g4{grid-template-columns:repeat(4,1fr)}
 section.block{padding:20px;margin-bottom:18px}
 .block-head{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;margin-bottom:12px}
@@ -145,9 +140,6 @@ textarea{width:100%;min-height:200px;font:12.5px/1.5 var(--mono);resize:vertical
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
 
 /* ---------- visual pieces ---------- */
-.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
-.steps4 div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;text-align:center;font:600 14px var(--display)}
-.steps4 svg.i{width:28px;height:28px;color:var(--imp)}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .kpi{padding:14px 16px}
 .kpi .v{font:700 28px/1.1 var(--display)}
@@ -296,86 +288,52 @@ body.offline .mobilehead{top:calc(30px + env(safe-area-inset-top))}
 }
 
 
-/* ---------- welcome: the story of the product, first thing a new visitor sees ---------- */
-.wl{--wl-bg:#0E1424;background:var(--wl-bg);color:#E6EAF3;min-height:100vh;overflow-x:hidden}
-.wl a{color:inherit}
-.wl-nav{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px max(20px,calc(50% - 560px));
-  padding-top:max(14px,env(safe-area-inset-top));background:rgba(14,20,36,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06)}
-.wl-nav .mark{color:#fff;padding:0}
+/* ---------- welcome: what AgentReady is, for a first visit or a demo ---------- */
+.wl{background:var(--paper);color:var(--ink);min-height:100vh}
+.wl-nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:18px 20px;padding-top:max(18px,env(safe-area-inset-top))}
+.wl-nav .mark{padding:0}
 .wl-nav .sp{flex:1}
-.wl-ghost{display:inline-flex;align-items:center;text-decoration:none;background:transparent;border:1px solid rgba(255,255,255,.18);color:#E6EAF3;border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
-.wl-cta{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:15px 26px;font:700 16px var(--body);cursor:pointer;
-  color:#0E1424;background:linear-gradient(135deg,#FFFFFF,#C9D6FF);box-shadow:0 10px 40px -10px rgba(111,143,255,.8);text-decoration:none}
-.wl-cta:hover{filter:brightness(1.05)} .wl-cta svg.i{width:18px;height:18px}
-.wl-sec{max-width:1120px;margin:0 auto;padding:72px 20px}
-.wl-hero{position:relative;padding-top:56px;text-align:center}
-.wl-hero::before{content:"";position:absolute;inset:-120px -40vw auto;height:720px;z-index:0;pointer-events:none;
-  background:radial-gradient(40% 50% at 30% 30%,rgba(61,99,240,.45),transparent 70%),radial-gradient(35% 45% at 72% 40%,rgba(30,138,90,.35),transparent 70%),radial-gradient(30% 40% at 50% 80%,rgba(180,35,60,.25),transparent 70%);
-  filter:blur(10px);animation:wlglow 14s ease-in-out infinite alternate;
-  -webkit-mask-image:linear-gradient(#000 45%,transparent);mask-image:linear-gradient(#000 45%,transparent)}
-@keyframes wlglow{to{transform:translate3d(0,40px,0) scale(1.08)}}
-.wl-hero > *{position:relative;z-index:1}
-.wl-kicker{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:600;letter-spacing:.02em;color:#C9D6FF;
-  border:1px solid rgba(201,214,255,.25);background:rgba(255,255,255,.04);padding:6px 12px;border-radius:999px}
-.wl h1{color:#fff;font-size:clamp(38px,6.4vw,76px);line-height:1.02;letter-spacing:-.035em;margin:22px auto 18px;max-width:14ch}
-.wl h1 em{font-style:normal;background:linear-gradient(90deg,#8AA2FF,#5BE0A6);-webkit-background-clip:text;background-clip:text;color:transparent}
-.wl-lead{font-size:clamp(17px,2vw,21px);color:#B3BCD0;max-width:60ch;margin:0 auto 30px;line-height:1.5}
-.wl-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
-.wl-proof{margin:42px auto 0;max-width:880px;border-radius:20px;padding:22px;background:rgba(27,35,53,.75);border:1px solid rgba(255,255,255,.08);
-  box-shadow:0 40px 80px -40px rgba(0,0,0,.8);text-align:left}
-.wl-proof .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:#8590A8}
-.wl-proof .big{font:700 15px var(--display);color:#fff}
-.wl-proof .score{margin-left:auto;font:700 28px var(--display);color:#fff;display:flex;align-items:center;gap:10px}
-.wl-proof .score .a{color:#5BE0A6}
-.wl-lanes{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.wl-lanes h4{margin:0 0 8px;font:600 13px var(--body);color:#B3BCD0;display:flex;gap:8px;align-items:center}
-.wl-lane{display:grid;grid-template-columns:1fr 64px;gap:10px;align-items:center;min-height:22px;margin:4px 0}
-.wl-lane .ticks{height:14px}
-.wl-lane .tick{opacity:0;animation:wltick .25s ease-out forwards}
-@keyframes wltick{from{opacity:0;transform:scaleY(.2)}to{opacity:1;transform:none}}
-.wl-lane .v{font-size:12px;font-weight:700;text-align:right;opacity:0;animation:wltick .3s ease-out forwards}
-.wl-lane .v.ok{color:#5BE0A6} .wl-lane .v.no{color:#FF8597}
-.wl-h2{font:700 clamp(28px,3.6vw,44px)/1.08 var(--display);letter-spacing:-.03em;color:#fff;margin:0 0 12px;max-width:20ch}
-.wl-sub{color:#B3BCD0;max-width:62ch;margin:0 0 34px;font-size:17px}
-.wl-eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8AA2FF;margin-bottom:12px}
-.wl-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.wl-card{padding:22px;border-radius:18px;background:rgba(27,35,53,.6);border:1px solid rgba(255,255,255,.07)}
-.wl-card svg.i{width:26px;height:26px;color:#8AA2FF;margin-bottom:12px}
-.wl-card h3{color:#fff;font-size:18px;margin-bottom:6px}
-.wl-card p{margin:0;color:#B3BCD0;font-size:15px;line-height:1.5}
-.wl-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:st}
-.wl-step{position:relative;padding:22px 20px;border-radius:18px;background:linear-gradient(180deg,rgba(61,99,240,.14),rgba(27,35,53,.5));border:1px solid rgba(138,162,255,.18)}
-.wl-step::before{counter-increment:st;content:counter(st);position:absolute;top:16px;right:18px;font:700 40px var(--display);color:rgba(255,255,255,.07)}
-.wl-step .who{display:inline-block;font-size:12px;font-weight:700;color:#0E1424;background:#8AA2FF;border-radius:999px;padding:3px 9px;margin-bottom:12px}
-.wl-step .who.g{background:#5BE0A6} .wl-step .who.r{background:#FF8597} .wl-step .who.y{background:#E0A84A}
-.wl-step h3{color:#fff;font-size:17px;margin-bottom:6px}
-.wl-step p{margin:0;color:#B3BCD0;font-size:14px;line-height:1.5}
-.wl-split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
-.wl-code{font:13px/1.65 var(--mono);background:#0A0F1C;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 0;overflow:hidden}
-.wl-code div{padding:0 16px;white-space:pre}
-.wl-code .bad{background:rgba(255,133,151,.12);color:#FF8597} .wl-code .ok{color:#8590A8}
-.wl-code .tag{float:right;font:700 11px var(--body);padding:1px 8px;border-radius:999px;background:#FF8597;color:#0E1424;margin-left:10px}
-.wl-list{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:12px}
-.wl-list li{display:flex;gap:12px;align-items:flex-start;color:#D5DBEA}
-.wl-list svg.i{color:#5BE0A6;flex:none;margin-top:1px}
-.wl-stack{display:flex;flex-wrap:wrap;gap:12px}
-.wl-chip{padding:12px 16px;border-radius:14px;background:rgba(27,35,53,.6);border:1px solid rgba(255,255,255,.08);min-width:200px;flex:1}
-.wl-chip b{display:block;color:#fff;font-size:15px} .wl-chip span{color:#8590A8;font-size:13px}
-.wl-end{text-align:center;padding-bottom:110px}
-.wl-foot{text-align:center;color:#5E6A80;font-size:13px;padding:0 20px 40px}
-.wl [data-reveal]{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
-.wl [data-reveal].in{opacity:1;transform:none}
-@media (prefers-reduced-motion: reduce){.wl [data-reveal]{opacity:1;transform:none;transition:none} .wl-hero::before{animation:none} .wl-lane .tick,.wl-lane .v{animation:none;opacity:1}}
-@media (max-width:860px){
-  .wl-cards,.wl-steps{grid-template-columns:1fr 1fr} .wl-split{grid-template-columns:1fr}
-}
-@media (max-width:560px){
-  .wl-sec{padding:52px 16px} .wl-hero{padding-top:36px}
-  .wl-cards,.wl-steps,.wl-lanes{grid-template-columns:1fr}
-  .wl-proof{padding:16px} .wl-proof .score{margin-left:0;width:100%}
-  .wl-nav .wl-ghost.hide-s{display:none}
-  .wl-code{font-size:11.5px}
-}
+.wl-main{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+.wl-hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:40px;align-items:start;padding:36px 0 56px;border-bottom:1px solid var(--rule)}
+.wl h1{font-size:clamp(34px,4.4vw,54px);line-height:1.04;letter-spacing:-.03em;margin:0 0 18px}
+.wl-lead{font-size:18px;line-height:1.55;color:var(--ink-2);margin:0 0 26px;max-width:46ch}
+.wl-btns{display:flex;gap:10px;flex-wrap:wrap}
+.wl-btns .btn{padding:13px 20px}
+.wl-replay{padding:18px 20px}
+.wl-replay .hd{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;margin-bottom:12px}
+.wl-replay .hd b{font:700 15px var(--display)}
+.wl-replay .hd span{font-size:13px;color:var(--ink-3)}
+.wl-replay .hd .sc{margin-left:auto;font:700 24px var(--display);color:var(--ink)} .wl-replay .sc .a{color:var(--ok)}
+.wl-replay h4{margin:12px 0 4px;font:600 13px var(--body);color:var(--ink-2);display:flex;gap:8px;align-items:center}
+.wl-lane{display:grid;grid-template-columns:1fr 70px;gap:10px;align-items:center;min-height:20px}
+.wl-lane .ticks{height:13px}
+.wl-lane .tick{opacity:0;animation:wltick .2s ease-out forwards}
+.wl-lane .v{font-size:12px;font-weight:600;text-align:right;opacity:0;animation:wltick .2s ease-out forwards}
+.wl-lane .v.ok{color:var(--ok)} .wl-lane .v.no{color:var(--bad)}
+@keyframes wltick{to{opacity:1}}
+.wl-replay .note{font-size:13px;color:var(--ink-3);margin:12px 0 0}
+.wl-row{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:40px;padding:48px 0;border-bottom:1px solid var(--rule)}
+.wl-row:last-of-type{border-bottom:0}
+.wl h2{font-size:26px;line-height:1.15;margin:0 0 10px}
+.wl-row > div > p{color:var(--ink-2);margin:0 0 12px;line-height:1.6}
+.wl-found{list-style:none;margin:0;padding:0}
+.wl-found li{padding:14px 0;border-top:1px solid var(--rule)}
+.wl-found li:first-child{border-top:0;padding-top:0}
+.wl-found b{display:block;margin-bottom:3px}
+.wl-found span{color:var(--ink-2);font-size:15px}
+.wl-steps{margin:0;padding-left:22px;display:grid;gap:14px}
+.wl-steps li{padding-left:6px;line-height:1.55}
+.wl-steps li::marker{font:700 15px var(--display);color:var(--ink-3)}
+.wl-steps b{display:block}
+.wl-steps span{color:var(--ink-2);font-size:15px}
+.wl-code{font:13px/1.7 var(--mono);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:12px 0;overflow-x:auto}
+.wl-code div{padding:0 14px;white-space:pre}
+.wl-code .bad{background:var(--bad-soft)}
+.wl-code .why{float:right;font:600 12px var(--body);color:var(--bad);margin-left:16px}
+.wl-foot{max-width:1080px;margin:0 auto;padding:22px 20px 40px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-3);display:flex;gap:8px 18px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){.wl-lane .tick,.wl-lane .v{animation:none;opacity:1}}
+@media (max-width:860px){.wl-hero,.wl-row{grid-template-columns:1fr;gap:22px}}
+@media (max-width:560px){.wl-hero{padding-top:16px} .wl-row{padding:36px 0} .wl-code{font-size:11.5px}}
 
 /* ---------- motion + loading ---------- */
 #app > *{animation:rise .28s ease-out both}
@@ -453,14 +411,11 @@ kbd{font:600 11px var(--mono);padding:2px 6px;border:1px solid var(--rule);borde
   .authbrand ul{display:none}
   .authbrand .foot{display:none}
   .authform{padding:0 16px 32px;margin-top:-22px}
-  .pagehero{padding:20px 18px;border-radius:16px;margin-top:12px}
-  .pagehero .steps4{margin-top:14px}
+  .pagehero{margin-top:14px}
   .topbar{padding-top:14px}
   .topbar .chips{display:none}
   .field{flex-direction:column}
   .field .btn{width:100%;padding:14px}
-  .steps4{grid-template-columns:repeat(4,1fr);gap:4px}
-  .steps4 div{font-size:12px;padding:10px 2px}
   .kpi .v{font-size:23px}
   .hero{grid-template-columns:1fr;justify-items:center;text-align:center}
   .metrics3{grid-template-columns:1fr}
@@ -538,8 +493,8 @@ en: {
   keyTitle: "Add your Nebius key to start runs",
   keySteps: ["Create a key at <a href=\"https://tokenfactory.nebius.com\" target=\"_blank\" rel=\"noopener\">tokenfactory.nebius.com</a>.",
              "Paste it into <code>.env</code> after <code>NEBIUS_API_KEY=</code>.", "Restart AgentReady."],
-  testerH: "Do AI agents work in your repo?",
-  steps4: ["Plant bugs", "Agents fix", "Diagnose", "Prove"],
+  testerH: "Test a repository",
+  testerP: "Give it a GitHub link or a folder. Agents try to fix bugs planted in a copy, then try again with the AGENTS.md AgentReady writes. A small run takes about ten minutes.",
   srcPh: "https://github.com/owner/repo", srcPhLocal: "  or  C:\\path\\to\\repo", srcLabel: "Repository URL or path",
   go: "Test this repo",
   tasks: "Tasks", repeats: "Attempts", parallel: "In parallel", steps: "Step budget",
@@ -601,7 +556,8 @@ en: {
   grading: "Grading: hidden tests", tokenPrompt: "Access token:",
   offline: "Server offline",
   // verifier
-  verifyH: "Verify code an AI wrote",
+  verifyH: "Check code an assistant wrote",
+  verifyP: "Paste the code or a diff. Every check runs on the code itself; only the last one is a model's opinion.",
   vSrc: "Repository (optional: adds the patch-applies and tests checks)", vPatch: "Code or diff the AI wrote",
   vPatchPh: "def total(items):\n    return sum(i.price for i in items)\n\n…or a diff: --- a/app.py  +++ b/app.py",
   vHow: "Paste any Python an AI gave you, or a diff (<code>git diff &gt; change.patch</code>). No repo needed.",
@@ -625,9 +581,9 @@ en: {
   sApp: "App", sInstall: "Install on this device", sInstalled: "Running as an app",
   sStatus: "Connection", sVersion: "Version", sExecutor: "Agents run in",
   // account, devices, PC <-> phone
-  brandH: "Make your repo work for AI agents.",
-  brandP: "Test, fix and prove how well coding agents work in your code. From your PC or your phone.",
-  brandL: ["Agents fix real bugs in your repo", "Verify code an AI wrote", "PC and phone, one account, live"],
+  brandH: "See where coding agents get stuck in your repo.",
+  brandP: "Then get an AGENTS.md that fixes it, with before and after numbers. Works on a PC and on a phone.",
+  brandL: ["Agents fix bugs planted in a copy of your code", "Checks code an assistant wrote", "Your phone and PC share one account"],
   setupH: "Create your account", setupP: "The first account owns this AgentReady server. Each account sees only its own history.",
   loginH: "Sign in", loginP: "Welcome back.",
   user: "Email", pass: "Password", pass2: "Repeat password", passMismatch: "Passwords don't match",
@@ -652,33 +608,29 @@ en: {
   eraseH: "Delete all my data", eraseP: "Removes your runs, verifications, your account and all your signed-in devices from this server. Other people's accounts stay. This cannot be undone.",
   eraseBtn: "Delete everything", erasePw: "Type your password to confirm",
   wl: {
-    kicker: "NVIDIA Nemotron · Nebius Token Factory",
-    h1: "Do AI agents actually work <em>in your repo?</em>",
-    lead: "AgentReady plants real bugs in your code, sends Nemotron coding agents to fix them, finds out where they get lost, writes the AGENTS.md that fixes it, and proves the fix by running everything again.",
-    start: "Get started", seeRun: "See a real run", skip: "Skip intro",
-    proofH: "A real run, replayed", proofSub: (src, n) => `${src} · ${n} agent attempts, one mark per step`,
-    before: "Current docs", after: "With the new AGENTS.md", ok: "solved", no: "failed",
-    noProof: "Your first run will show up here: every agent attempt, step by step.",
-    probE: "The problem", probH: "Every repo is a different maze for an AI agent.",
-    probS: "Teams write agent instructions by guesswork and never learn whether they help.",
-    prob: [["search", "Lost in the code", "Agents read the wrong files and fix symptoms, not the bug."],
-           ["tester", "Can't run the tests", "They guess pytest where the repo uses unittest, or miss PYTHONPATH."],
-           ["history", "Docs that drifted", "A README written years ago points at files that no longer exist."]],
-    howE: "How it works", howH: "Measure. Diagnose. Fix. Prove.",
-    howS: "Three Nemotron models, each where it fits, plus web research. Every result is graded by your own test suite, never by a model's opinion.",
-    how: [["Super", "", "Plant real bugs", "Defects your tests catch, each with a bug report that doesn't give the answer away."],
-          ["Super", "", "Agents try to fix them", "Nemotron Super agents in throwaway sandboxes; test files are restored before grading."],
-          ["Nano · Ultra", "g", "Find the root causes", "Nano triages every attempt, Tavily finds the official docs, Ultra writes AGENTS.md."],
-          ["Proof", "y", "Run it all again", "Same tasks, new instructions: score, success rate with 95% ranges, steps and tokens."]],
-    verE: "And for every change", verH: "Verify code an AI wrote. No repo needed.",
-    verS: "Paste what the assistant gave you. AgentReady checks it for real, in seconds.",
-    ver: ["Packages that don't exist on PyPI", "eval, shell=True, swallowed errors", "Hard-coded secrets", "Syntax, and with the repo: patch applies, tests still pass", "A Nemotron review on top"],
-    verCta: "Open the Verifier",
-    codeTags: ["not on PyPI", "risky", "secret"],
-    stackE: "Built on", stack: [["NVIDIA Nemotron 3", "Nano · Super · Ultra"], ["Nebius Token Factory", "every model call"], ["Nebius Serverless", "Jobs per attempt, Endpoint for the app"], ["Tavily", "official docs research"]],
-    endH: "Make your repo work for the agents that work on it.",
-    endS: "PC and phone, one account, live. Private and self-hosted.",
-    foot: "Open source · MIT · No tracking",
+    h1: "Do coding agents actually work in your repo?",
+    lead: "AgentReady plants small bugs in your code that your tests can catch, then lets NVIDIA Nemotron agents try to fix them. It watches where they get stuck, writes an AGENTS.md for those spots and runs the same tasks again, so you can see whether the new instructions helped.",
+    start: "Open AgentReady", seeRun: "See the full report", skip: "Skip",
+    proofH: "Replay of a real run", proofSub: (src, n) => `${src}, ${n} attempts, one mark per agent step`,
+    before: "With the repo's own README", after: "With the AGENTS.md AgentReady wrote", ok: "solved", no: "failed",
+    replayNote: "Red marks are commands that failed. The second group needed fewer steps and solved every task.",
+    noProof: "Sign in to see your own runs replayed here.",
+    probH: "What the agents ran into",
+    probP: "From the demo repo that ships with AgentReady (parcelpost). Nemotron Ultra read every failed attempt and named these causes:",
+    found: [["The README says to run pytest", "The project uses unittest, so agents ran the wrong command and saw errors that had nothing to do with the bug."],
+            ["The code lives in src/ and nothing says so", "Without PYTHONPATH=src the imports fail. Most agents found this out by trial and error."],
+            ["The README points to rates.py and rules.py", "Neither file exists. The pricing code moved to pricing/tariff.py a while ago."]],
+    probEnd: "The AGENTS.md it wrote fixed all three. The score went from 53 to 93 and agents needed 13.7 steps per task instead of 18.3.",
+    howH: "How a run works",
+    how: [["It plants bugs your tests catch", "An off-by-one, a flipped comparison, a deleted function body. Changes the tests don't notice are thrown away. Nemotron Super writes a bug report for each one that describes the symptom and not the fix."],
+          ["Agents try to fix them", "Nemotron Super agents, each in a throwaway copy of the repo. Before grading, the test files are put back, so editing a test never counts as a fix."],
+          ["It finds out why they failed", "Nemotron Nano reads every attempt, Tavily looks up the official docs of your test runner, and Nemotron Ultra writes the AGENTS.md."],
+          ["It runs everything again", "Same tasks, new instructions. You get the success rate with a 95% range, steps and tokens per solved task, and a replay of every attempt."]],
+    verH: "It also checks code an assistant wrote",
+    verP: "Paste the code or a diff. You don't need a repository for this. It catches packages that don't exist on PyPI, eval and shell=True, swallowed errors and keys left in the code. With the repository it also applies the change and runs your tests.",
+    verCta: "Try it on this snippet",
+    codeWhy: ["no such package on PyPI", "runs whatever the server sends", "hides every error", "key in the code"],
+    foot: ["Runs on NVIDIA Nemotron 3 (Nano, Super, Ultra) through Nebius Token Factory", "Docs search by Tavily", "MIT licence"],
   },
   setupCode: "Setup code", setupCodeHint: "Printed in the AgentReady console on the computer it runs on. Not needed when you open it on that computer as localhost.",
   stop: "Stop", stopQ: "Stop this run? Finished attempts are kept.", stopping: "Stopping…",
@@ -698,8 +650,8 @@ ru: {
   keyTitle: "Добавьте ключ Nebius, чтобы запускать проверки",
   keySteps: ["Создайте ключ на <a href=\"https://tokenfactory.nebius.com\" target=\"_blank\" rel=\"noopener\">tokenfactory.nebius.com</a>.",
              "Вставьте его в <code>.env</code> после <code>NEBIUS_API_KEY=</code>.", "Перезапустите AgentReady."],
-  testerH: "Справляются ли ИИ-агенты с вашим кодом?",
-  steps4: ["Баги", "Агенты чинят", "Разбор", "Доказательство"],
+  testerH: "Проверить репозиторий",
+  testerP: "Дайте ссылку на GitHub или папку. Агенты чинят баги, подложенные в копию, а потом пробуют снова с AGENTS.md, который напишет AgentReady. Небольшой прогон занимает минут десять.",
   srcPh: "https://github.com/owner/repo", srcPhLocal: "  или  C:\\путь\\к\\репо", srcLabel: "Ссылка на репозиторий или путь",
   go: "Проверить",
   tasks: "Задач", repeats: "Попыток", parallel: "Одновременно", steps: "Лимит шагов",
@@ -760,7 +712,8 @@ ru: {
   triage: "Nano:", tampered: f => `Правил тесты (${f}); перед проверкой восстановлены.`,
   grading: "Проверка: скрытые тесты", tokenPrompt: "Токен доступа:",
   offline: "Сервер недоступен",
-  verifyH: "Проверка кода, написанного ИИ",
+  verifyH: "Проверить код от ассистента",
+  verifyP: "Вставьте код или diff. Все проверки идут по самому коду, и только последняя — мнение модели.",
   vSrc: "Репозиторий (необязательно: добавит проверки «патч применяется» и «тесты»)", vPatch: "Код или diff от ИИ",
   vPatchPh: "def total(items):\n    return sum(i.price for i in items)\n\n…or a diff: --- a/app.py  +++ b/app.py",
   vHow: "Вставьте любой Python от ИИ или diff (<code>git diff &gt; change.patch</code>). Репозиторий не обязателен.",
@@ -782,9 +735,9 @@ ru: {
   setH: "Настройки", sLang: "Язык", sTheme: "Тема", themes: {auto:"Авто", light:"Светлая", dark:"Тёмная"},
   sApp: "Приложение", sInstall: "Установить на это устройство", sInstalled: "Запущено как приложение",
   sStatus: "Подключение", sVersion: "Версия", sExecutor: "Где работают агенты",
-  brandH: "Сделайте репозиторий удобным для ИИ-агентов.",
-  brandP: "Проверяйте, чините и доказывайте, как агенты работают с вашим кодом. С компьютера или с телефона.",
-  brandL: ["Агенты чинят настоящие баги", "Проверка кода, написанного ИИ", "ПК и телефон, один аккаунт, вживую"],
+  brandH: "Узнайте, где ИИ-агенты застревают в вашем репозитории.",
+  brandP: "И получите AGENTS.md, который это исправляет, с цифрами до и после. Работает на ПК и на телефоне.",
+  brandL: ["Агенты чинят баги, подложенные в копию вашего кода", "Проверяет код, написанный ассистентом", "Телефон и ПК в одном аккаунте"],
   setupH: "Создайте аккаунт", setupP: "Первый аккаунт становится владельцем этого сервера AgentReady. Каждый аккаунт видит только свою историю.",
   loginH: "Вход", loginP: "С возвращением.",
   user: "Email", pass: "Пароль", pass2: "Повторите пароль", passMismatch: "Пароли не совпадают",
@@ -809,33 +762,29 @@ ru: {
   eraseH: "Удалить все мои данные", eraseP: "Удаляет с этого сервера ваши прогоны, проверки, аккаунт и все ваши устройства. Аккаунты других людей остаются. Отменить нельзя.",
   eraseBtn: "Удалить всё", erasePw: "Введите пароль для подтверждения",
   wl: {
-    kicker: "NVIDIA Nemotron · Nebius Token Factory",
-    h1: "Справляются ли ИИ-агенты <em>с вашим кодом?</em>",
-    lead: "AgentReady подкладывает в код настоящие баги, отправляет агентов Nemotron их чинить, выясняет, где они теряются, пишет AGENTS.md, который это исправляет, и доказывает результат повторным прогоном.",
-    start: "Начать", seeRun: "Настоящий прогон", skip: "Пропустить",
-    proofH: "Настоящий прогон, повтор", proofSub: (src, n) => `${src} · ${n} попыток агентов, отметка — один шаг`,
-    before: "Старая документация", after: "С новым AGENTS.md", ok: "решено", no: "не решено",
-    noProof: "Здесь появится ваш первый прогон: каждая попытка агента, шаг за шагом.",
-    probE: "Проблема", probH: "Каждый репозиторий — свой лабиринт для ИИ-агента.",
-    probS: "Инструкции для агентов пишут наугад и никогда не узнают, помогают ли они.",
-    prob: [["search", "Теряются в коде", "Читают не те файлы и чинят симптомы, а не баг."],
-           ["tester", "Не могут запустить тесты", "Угадывают pytest там, где unittest, или забывают PYTHONPATH."],
-           ["history", "Устаревшие доки", "README многолетней давности ссылается на файлы, которых уже нет."]],
-    howE: "Как это работает", howH: "Измерить. Понять. Исправить. Доказать.",
-    howS: "Три модели Nemotron, каждая на своём месте, плюс веб-поиск. Результат оценивают тесты вашего репозитория, а не мнение модели.",
-    how: [["Super", "", "Подложить баги", "Дефекты, которые ловят ваши тесты, и баг-репорт без подсказки ответа."],
-          ["Super", "", "Агенты чинят", "Агенты Nemotron Super в одноразовых песочницах; тесты перед проверкой восстанавливаются."],
-          ["Nano · Ultra", "g", "Найти причины", "Nano разбирает каждую попытку, Tavily ищет документацию, Ultra пишет AGENTS.md."],
-          ["Доказательство", "y", "Прогнать снова", "Те же задачи с новыми инструкциями: оценка, доля решённых с диапазоном 95%, шаги и токены."]],
-    verE: "И для каждого изменения", verH: "Проверка кода от ИИ. Репозиторий не нужен.",
-    verS: "Вставьте то, что выдал ассистент. AgentReady проверит по-настоящему, за секунды.",
-    ver: ["Пакеты, которых нет на PyPI", "eval, shell=True, проглоченные ошибки", "Ключи прямо в коде", "Синтаксис, а с репозиторием — патч применяется и тесты проходят", "И ревью Nemotron сверху"],
-    verCta: "Открыть проверку",
-    codeTags: ["нет на PyPI", "опасно", "ключ"],
-    stackE: "Технологии", stack: [["NVIDIA Nemotron 3", "Nano · Super · Ultra"], ["Nebius Token Factory", "каждый вызов модели"], ["Nebius Serverless", "Jobs на попытку, Endpoint для приложения"], ["Tavily", "поиск документации"]],
-    endH: "Сделайте репозиторий удобным для агентов, которые с ним работают.",
-    endS: "ПК и телефон, один аккаунт, вживую. Приватно, на своём сервере.",
-    foot: "Открытый код · MIT · Без слежки",
+    h1: "Справляются ли ИИ-агенты с вашим репозиторием?",
+    lead: "AgentReady подкладывает в код небольшие баги, которые ловят ваши тесты, и даёт агентам NVIDIA Nemotron их починить. Он смотрит, где агенты застревают, пишет AGENTS.md про эти места и прогоняет те же задачи ещё раз. Так видно, помогли ли новые инструкции.",
+    start: "Открыть AgentReady", seeRun: "Полный отчёт", skip: "Пропустить",
+    proofH: "Повтор настоящего прогона", proofSub: (src, n) => `${src}, ${n} попыток, отметка — один шаг агента`,
+    before: "С README самого репозитория", after: "С AGENTS.md от AgentReady", ok: "решено", no: "не решено",
+    replayNote: "Красные отметки — команды, которые упали. Второй группе понадобилось меньше шагов, и она решила все задачи.",
+    noProof: "Войдите, чтобы увидеть здесь повтор своих прогонов.",
+    probH: "Обо что споткнулись агенты",
+    probP: "На демо-репозитории, который идёт с AgentReady (parcelpost). Nemotron Ultra прочитал все неудачные попытки и назвал такие причины:",
+    found: [["В README написано запускать pytest", "А проект использует unittest. Агенты запускали не ту команду и видели ошибки, не связанные с багом."],
+            ["Код лежит в src/, и об этом нигде не сказано", "Без PYTHONPATH=src импорты падают. Большинство агентов выясняли это методом тыка."],
+            ["README ссылается на rates.py и rules.py", "Таких файлов нет. Код цен давно переехал в pricing/tariff.py."]],
+    probEnd: "Написанный им AGENTS.md исправил все три пункта. Оценка выросла с 53 до 93, а шагов на задачу стало 13.7 вместо 18.3.",
+    howH: "Как проходит прогон",
+    how: [["Подкладывает баги, которые ловят тесты", "Ошибка на единицу, перевёрнутое сравнение, удалённое тело функции. Изменения, которые тесты не замечают, отбрасываются. Nemotron Super пишет к каждому баг-репорт: описывает симптом, а не исправление."],
+          ["Агенты пытаются починить", "Агенты Nemotron Super, каждый в одноразовой копии репозитория. Перед проверкой тесты возвращаются на место, так что правка теста не засчитывается."],
+          ["Выясняет, почему не вышло", "Nemotron Nano разбирает каждую попытку, Tavily ищет официальную документацию вашего тест-раннера, Nemotron Ultra пишет AGENTS.md."],
+          ["Прогоняет всё ещё раз", "Те же задачи, новые инструкции. Получаете долю решённых с диапазоном 95%, шаги и токены на решённую задачу и повтор каждой попытки."]],
+    verH: "Ещё он проверяет код, который написал ассистент",
+    verP: "Вставьте код или diff. Репозиторий для этого не нужен. Находит пакеты, которых нет на PyPI, eval и shell=True, проглоченные ошибки и ключи в коде. С репозиторием ещё применяет изменение и запускает ваши тесты.",
+    verCta: "Проверить этот пример",
+    codeWhy: ["такого пакета нет на PyPI", "выполнит всё, что пришлёт сервер", "прячет любые ошибки", "ключ прямо в коде"],
+    foot: ["Работает на NVIDIA Nemotron 3 (Nano, Super, Ultra) через Nebius Token Factory", "Поиск документации: Tavily", "Лицензия MIT"],
   },
   setupCode: "Код настройки", setupCodeHint: "Напечатан в консоли AgentReady на компьютере, где он запущен. Не нужен, если открыть там же через localhost.",
   stop: "Остановить", stopQ: "Остановить прогон? Завершённые попытки сохранятся.", stopping: "Останавливаем…",
@@ -1071,10 +1020,7 @@ async function tester(){
     : HEALTH && !HEALTH.api_key_set ? `<div class="sheet notice" role="note"><b>${t.keyTitle}</b>
       <ol>${t.keySteps.map(s => `<li>${s}</li>`).join("")}</ol></div>` : "";
   $("#app").innerHTML = `
-  <div class="pagehero">${ic("tester", "", "heroico")}
-    <h1>${t.testerH}</h1><p>${t.brandP}</p>
-    <div class="steps4">${["bug","robot","search","stats"].map((i, k) => `<div>${ic(i)}${t.steps4[k]}</div>`).join("")}</div>
-  </div>
+  <div class="pagehero"><h1>${t.testerH}</h1><p>${t.testerP}</p></div>
   ${keyBox}
   <div class="grid g2">
     <form class="sheet" id="f" style="padding:20px">
@@ -1407,8 +1353,7 @@ async function verifyPage(){
   const t = L();
   const vers = await api("/api/verify").catch(() => []);
   const ex = (HEALTH?.examples || [])[0];
-  $("#app").innerHTML = `<div class="pagehero">${ic("verify", "", "heroico")}<h1>${t.verifyH}</h1>
-    <div class="steps4">${["check","lock","search","tester"].map((i, k) => `<div>${ic(i)}${Object.values(t.vChecks)[[0, 3, 4, 5][k]][0]}</div>`).join("")}</div></div>
+  $("#app").innerHTML = `<div class="pagehero"><h1>${t.verifyH}</h1><p>${t.verifyP}</p></div>
   <div class="grid g2">
     <form class="sheet" id="vf" style="padding:20px">
       <label class="faint" style="font-size:13px" for="vsrc">${t.vSrc}</label>
@@ -1433,6 +1378,7 @@ async function verifyPage(){
   $("#vfile").onchange = async e => { const f = e.target.files[0]; if (f) $("#vpatch").value = await f.text(); };
   // the kind of code assistants really produce: a made-up package, eval, a swallowed error
   $("#vsample").onclick = e => { e.preventDefault(); $("#vsrc").value = ""; $("#vpatch").value = SAMPLE_CODE; $("#vpatch").focus(); };
+  if (new URLSearchParams(location.search).get("sample")){ history.replaceState({}, "", "/verify"); $("#vpatch").value = SAMPLE_CODE; }
   $("#vf").onsubmit = async e => {
     e.preventDefault();
     const hdr = tokenHeader(); if (hdr === null) return;
@@ -1679,80 +1625,68 @@ function loadQR(url){
   document.head.appendChild(s);
 }
 
-/* ------------------------------------------------------------- welcome (intro for new visitors and demos) */
+/* ------------------------------------------------------------- welcome (what AgentReady is, for a first visit or a demo) */
 async function welcomeScreen(){
   clearInterval(POLL); clearInterval(FEED);
   const t = L(), w = t.wl;
-  document.title = "AgentReady · " + w.h1.replace(/<[^>]+>/g, "");
+  document.title = "AgentReady";
+  const code = [["import requests"], ["import fastjsonx", 0], [""], ["def load_prices(url):"], ["    try:"],
+    ["        data = requests.get(url).text"], ["        return eval(data)", 1], ["    except:", 2], ["        return {}"], [""],
+    ['API_KEY = "sk-live-4f9a8c2e1b7d6a5f"', 3]];
   document.body.innerHTML = `<div class="wl">
     <nav class="wl-nav" aria-label="Intro"><a class="mark" href="/" id="wl-home">${LOGO} AgentReady</a><span class="sp"></span>
-      <button class="wl-ghost" id="wl-lang">${LANG === "ru" ? "English" : "Русский"}</button>
-      <button class="wl-ghost hide-s" id="wl-skip">${w.skip}</button></nav>
-    <main>
-    <section class="wl-sec wl-hero">
-      <span class="wl-kicker">${ic("robot", 'style="width:16px;height:16px"')}${w.kicker}</span>
-      <h1>${w.h1}</h1>
-      <p class="wl-lead">${w.lead}</p>
-      <div class="wl-ctas"><button class="wl-cta" data-start>${w.start} ${ic("arrow")}</button>
-        <a class="wl-ghost" id="wl-run" href="/" hidden style="padding:14px 22px;font-size:16px">${w.seeRun}</a></div>
-      <div class="wl-proof" id="wl-proof" data-reveal ${AUTH?.accounts && !AUTH.user ? "hidden" : ""}><p style="margin:0;color:#8590A8">${w.noProof}</p></div>
-    </section>
-    <section class="wl-sec" data-reveal>
-      <div class="wl-eyebrow">${w.probE}</div><h2 class="wl-h2">${w.probH}</h2><p class="wl-sub">${w.probS}</p>
-      <div class="wl-cards">${w.prob.map(([i, h, p]) => `<div class="wl-card">${ic(i)}<h3>${h}</h3><p>${p}</p></div>`).join("")}</div>
-    </section>
-    <section class="wl-sec" data-reveal>
-      <div class="wl-eyebrow">${w.howE}</div><h2 class="wl-h2">${w.howH}</h2><p class="wl-sub">${w.howS}</p>
-      <div class="wl-steps">${w.how.map(([who, c, h, p]) => `<div class="wl-step"><span class="who ${c}">${who}</span><h3>${h}</h3><p>${p}</p></div>`).join("")}</div>
-    </section>
-    <section class="wl-sec" data-reveal><div class="wl-split">
-      <div><div class="wl-eyebrow">${w.verE}</div><h2 class="wl-h2">${w.verH}</h2><p class="wl-sub">${w.verS}</p>
-        <ul class="wl-list">${w.ver.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
-        <button class="wl-cta" data-start="/verify">${ic("verify")}${w.verCta}</button></div>
-      <div class="wl-code" aria-hidden="true">${[
-        ["ok", "import requests"], ["bad", "import fastjsonx", 0], ["ok", ""], ["ok", "def load_prices(url):"], ["ok", "    try:"],
-        ["ok", "        data = requests.get(url).text"], ["bad", "        return eval(data)", 1], ["bad", "    except:", 1],
-        ["ok", "        return {}"], ["ok", ""], ["bad", 'API_KEY = "sk-live-4f9a…"', 2]]
-        .map(([c, l, tag]) => `<div class="${c}">${esc(l) || " "}${tag != null ? `<span class="tag">${w.codeTags[tag]}</span>` : ""}</div>`).join("")}</div>
-    </div></section>
-    <section class="wl-sec" data-reveal>
-      <div class="wl-eyebrow">${w.stackE}</div>
-      <div class="wl-stack">${w.stack.map(([b, s]) => `<div class="wl-chip"><b>${b}</b><span>${s}</span></div>`).join("")}</div>
-    </section>
-    <section class="wl-sec wl-end" data-reveal>
-      <h2 class="wl-h2" style="margin:0 auto 12px">${w.endH}</h2><p class="wl-sub" style="margin:0 auto 28px">${w.endS}</p>
-      <button class="wl-cta" data-start>${w.start} ${ic("arrow")}</button>
-    </section>
+      <button class="tab" id="wl-lang">${LANG === "ru" ? "English" : "Русский"}</button>
+      <button class="tab" id="wl-skip">${w.skip}</button></nav>
+    <main class="wl-main">
+      <section class="wl-hero">
+        <div><h1>${w.h1}</h1><p class="wl-lead">${w.lead}</p>
+          <div class="wl-btns"><button class="btn" data-start>${w.start}</button><a class="btn ghost" id="wl-run" href="/" hidden>${w.seeRun}</a></div></div>
+        <div class="sheet wl-replay" id="wl-proof"><p class="faint" style="margin:0">${w.noProof}</p></div>
+      </section>
+      <section class="wl-row">
+        <div><h2>${w.probH}</h2><p>${w.probP}</p></div>
+        <div><ul class="wl-found">${w.found.map(([b, x]) => `<li><b>${b}</b><span>${x}</span></li>`).join("")}</ul>
+          <p style="margin:16px 0 0">${w.probEnd}</p></div>
+      </section>
+      <section class="wl-row">
+        <div><h2>${w.howH}</h2></div>
+        <ol class="wl-steps">${w.how.map(([b, x]) => `<li><b>${b}</b><span>${x}</span></li>`).join("")}</ol>
+      </section>
+      <section class="wl-row">
+        <div><h2>${w.verH}</h2><p>${w.verP}</p><button class="btn ghost" data-start="/verify?sample=1">${w.verCta}</button></div>
+        <div class="wl-code" aria-label="Example of assistant-written code">${code.map(([l, why]) =>
+          `<div class="${why != null ? "bad" : ""}">${esc(l) || " "}${why != null ? `<span class="why">${w.codeWhy[why]}</span>` : ""}</div>`).join("")}</div>
+      </section>
     </main>
-    <div class="wl-foot">${w.foot}</div></div>`;
+    <footer class="wl-foot">${w.foot.map(x => `<span>${x}</span>`).join("")}</footer></div>`;
   const leave = to => { store.set("ar-welcomed", "1"); location.href = to || "/"; };
   document.querySelectorAll("[data-start]").forEach(b => b.onclick = () => leave(b.dataset.start));
   $("#wl-skip").onclick = () => leave("/");
   $("#wl-home").onclick = e => { e.preventDefault(); leave("/"); };
   $("#wl-lang").onclick = () => { LANG = LANG === "ru" ? "en" : "ru"; store.set("ar-lang", LANG); document.documentElement.lang = LANG; welcomeScreen(); };
-  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold: .12}) : null;
-  document.querySelectorAll("[data-reveal]").forEach(el => io ? io.observe(el) : el.classList.add("in"));
   welcomeProof();
 }
 
 async function welcomeProof(){
-  // the hero shows a real finished run when this visitor may see runs; nothing invented when not
+  // a real finished run when this visitor may see runs; nothing made up when not
+  const box = $("#wl-proof");
   if (AUTH?.accounts && !AUTH.user) return;  // signed out: no runs to show (and no 401 in the console)
   const get = async u => { const r = await fetch(u).catch(() => null); return r && r.ok ? r.json() : null; };
   const runs = await get("/api/runs"); const best = (runs || []).filter(r => r.status === "done" && r.score_after != null)
     .sort((a, b) => (b.score_after - b.score_before) - (a.score_after - a.score_before))[0];
-  const run = best && await get("/api/runs/" + best.id); const box = $("#wl-proof"); if (!run || !box) return;
+  const run = best && await get("/api/runs/" + best.id); if (!run || !box) return;
   const w = L().wl, eps = Object.values(run.episodes || {});
   const lanes = cond => eps.filter(e => e.condition === cond).sort((a, b) => a.key.localeCompare(b.key, undefined, {numeric: true})).slice(0, 6);
   let delay = 0;
-  const lane = e => { const ticks = (e.steps || []).map(st => { delay += 0.025;
+  const lane = e => { const ticks = (e.steps || []).map(st => { delay += 0.02;
       return `<span class="tick ${esc(st.action)} ${st.ok ? "" : "fail"}" style="animation-delay:${delay.toFixed(2)}s"></span>`; }).join("");
     return `<div class="wl-lane"><span class="ticks">${ticks}</span><span class="v ${e.success ? "ok" : "no"}" style="animation-delay:${delay.toFixed(2)}s">${e.success ? w.ok : w.no}</span></div>`; };
   const m = run.metrics;
-  box.innerHTML = `<div class="hd"><span class="big">${w.proofH}</span><span>${esc(w.proofSub(run.options.label || run.options.source, eps.length))}</span>
-      <span class="score">${m.score_before} <span style="color:#5E6A80">→</span> <span class="a">${m.score_after}</span></span></div>
-    <div class="wl-lanes"><div><h4><i class="swatch" style="background:#8C96AA"></i>${w.before}</h4>${lanes("baseline").map(lane).join("")}</div>
-      <div><h4><i class="swatch" style="background:#8AA2FF"></i>${w.after}</h4>${lanes("improved").map(lane).join("")}</div></div>`;
+  box.innerHTML = `<div class="hd"><b>${w.proofH}</b><span>${esc(w.proofSub(run.options.label || run.options.source, eps.length))}</span>
+      <span class="sc">${m.score_before} → <span class="a">${m.score_after}</span></span></div>
+    <h4><i class="swatch" style="background:var(--base)"></i>${w.before}</h4>${lanes("baseline").map(lane).join("")}
+    <h4><i class="swatch" style="background:var(--imp)"></i>${w.after}</h4>${lanes("improved").map(lane).join("")}
+    <p class="note">${w.replayNote}</p>`;
   const a = $("#wl-run"); a.hidden = false; a.href = "/run/" + run.id;
   a.onclick = e => { e.preventDefault(); store.set("ar-welcomed", "1"); location.href = a.href; };
 }
