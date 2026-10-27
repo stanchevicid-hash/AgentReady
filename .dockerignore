@@ -1,0 +1,5 @@
+.env
+runs
+.git
+tests
+**/__pycache__
