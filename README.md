@@ -1,71 +1,67 @@
 # AgentReady
 
-**Do AI coding agents actually work in your repo? AgentReady measures it, finds out why they don't, fixes it and proves the fix with numbers.**
+AgentReady tells you whether AI coding agents can work in your repository, and where they get stuck when they can't.
 
-AgentReady plants real bugs in your codebase, sends NVIDIA Nemotron coding agents to fix them in isolated sandboxes, watches where they get lost, writes an `AGENTS.md` that fixes the root causes, and runs the exact same tasks again. You get a before/after score, a replay of every agent attempt and an instructions file you can commit.
+It plants small bugs in a copy of your code (ones your own tests catch), lets NVIDIA Nemotron coding agents try to fix them, and records every step they take. Then it works out what tripped them up, writes an `AGENTS.md` for those spots, and runs the same tasks again with it. You end up with a before and after score, a replay of every attempt and an instructions file you can commit.
 
-Built for the **Nebius x NVIDIA Global AI Hackathon**, Coding and Agentic Engineering track. Every model call goes to **NVIDIA Nemotron on Nebius Token Factory**.
+I built it for the Nebius x NVIDIA Global AI Hackathon (Coding and Agentic Engineering track). Every model call goes to NVIDIA Nemotron on Nebius Token Factory.
 
 ![The intro screen: a real run replayed, before and after the new AGENTS.md](docs/screenshots/welcome.png)
 
 ![A real run on the demo repo: Agent-Ready score 62 to 93, tasks solved 70% to 100%, 19.1 to 13.2 steps per attempt](docs/screenshots/run-overview.png)
 
-| Every agent attempt, step by step | Verify a diff an AI wrote | On the phone |
+| Every agent attempt, step by step | Checking a diff an assistant wrote | On a phone |
 |---|---|---|
-| ![Lanes of agent attempts, one mark per step, before and after the new AGENTS.md](docs/screenshots/run-attempts.png) | ![Verifier: score 56, invented package and failing tests caught, diff shown](docs/screenshots/verifier.png) | ![The same run report on a phone](docs/screenshots/phone-run.png) |
+| ![Lanes of agent attempts, one mark per step, before and after the new AGENTS.md](docs/screenshots/run-attempts.png) | ![Verifier on a pasted snippet with no repository: score 56, a package that is not on PyPI, eval, a bare except and a key in the code](docs/screenshots/verifier.png) | ![The same run report on a phone](docs/screenshots/phone-run.png) |
 
-All numbers in these screenshots come from a real run (`example:parcelpost`, 5 tasks × 2 attempts × 2 conditions, NVIDIA Nemotron on Token Factory).
+The numbers in these screenshots come from a real run on `example:parcelpost` (5 tasks, 2 attempts each, with and without the new instructions).
 
-## Why this exists
+## Why
 
-Most code is now written with AI agents, but every repository is a different maze. Teams write `AGENTS.md` / `CLAUDE.md` / Copilot instruction files by guesswork and never learn whether they help. Agents then burn tokens rediscovering how to run the tests, read a README that drifted from the code years ago, or fix the wrong file.
+Agents spend a surprising share of their steps on things that have nothing to do with the bug: guessing how to run the tests, following a README that stopped matching the code a year ago, opening the wrong module. Teams write `AGENTS.md`, `CLAUDE.md` or Copilot instruction files to help, but they rarely find out whether those files changed anything.
 
-There are benchmarks for *models* (SWE-bench) and linters for *code*, but nothing that measures **how agent-friendly your specific repository is**, explains why, and closes the loop with a verified improvement. That is AgentReady.
+Model benchmarks such as SWE-bench compare models across many repositories. AgentReady looks at one repository, yours, and measures how well agents do there before and after a change to its instructions.
 
-## How it works
+## How a run works
 
 ```
 your repo ──► 1. probe        find a test command that passes on a clean checkout
-              2. plant        inject real defects (off-by-one, flipped comparison, wrong operator,
-                              removed implementation). Keep only the ones the test suite catches.
-                              Nemotron Super writes the bug report a user would file (no file paths).
-              3. attempt      Nemotron Super coding agents try every task, N attempts each,
-                              in parallel, each in its own throwaway copy of the repo
-              4. grade        restore the original tests (agents can't game them), run the suite
-              5. triage       Nemotron Nano classifies every attempt: navigation, test discovery,
-                              environment, misleading docs, conventions, verification, reasoning...
+              2. plant        inject small defects (off-by-one, flipped comparison, wrong operator,
+                              removed implementation) and keep only the ones the tests catch.
+                              Nemotron Super writes a bug report for each, without file paths
+              3. attempt      Nemotron Super agents try every task, N attempts each, in parallel,
+                              each in its own throwaway copy of the repo
+              4. grade        put the original test files back, then run the suite
+              5. triage       Nemotron Nano sorts every attempt into a failure category
+                              (navigation, test discovery, environment, misleading docs, ...)
               6. research     Tavily finds the official docs of the repo's test runner and dependencies
-              7. synthesize   Nemotron Ultra finds the root causes in the repo and writes AGENTS.md,
-                              grounded in the verified test command and the docs Tavily found
-              8. prove        the same tasks again with the new AGENTS.md
-              9. report       score, success rate (95% CI), steps, tokens per solved task, replays
+              7. synthesize   Nemotron Ultra names the root causes and writes AGENTS.md from the
+                              verified test command and the docs Tavily found
+              8. prove        the same tasks again, with the new AGENTS.md
+              9. report       score, success rate with a 95% interval, steps, tokens per solved task
 ```
 
-Grading is objective: a task counts as solved only when the repository's own test suite passes again, with test files restored to their original state first.
+A task counts as solved only when the repository's own test suite passes. Test files are restored before grading, so an agent that edits a test to make it pass gets no credit.
 
-### NVIDIA Nemotron on Nebius Token Factory
+### How the three Nemotron models are used
 
-AgentReady uses all three Nemotron 3 tiers, each where it is the right tool, exactly as the hackathon brief suggests:
-
-| Model | Role in AgentReady | Why this tier |
+| Model | What it does here | Why this size |
 |---|---|---|
-| **Nemotron 3 Nano** | Triage of every agent attempt into a failure category, with evidence steps | High volume, short structured outputs: fast and cheap |
-| **Nemotron 3 Super** | The coding agent under test (multi-step tool use) and the bug-report writer | Strong agentic tool use at a sensible price per step, which matters because it runs hundreds of steps per audit |
-| **Nemotron 3 Ultra** | Cross-run root-cause synthesis and writing the improved AGENTS.md | One or two calls per audit that need the deepest reasoning |
+| Nemotron 3 Nano | Reads each agent attempt and labels why it failed, citing the steps | Many short, structured calls |
+| Nemotron 3 Super | Is the coding agent under test, and writes the bug reports | Good at multi-step tool use; it makes hundreds of calls per run, so price per step matters |
+| Nemotron 3 Ultra | Reads all the triage results, names root causes and writes AGENTS.md | One or two calls per run that need the most reasoning |
 
-The dashboard shows the exact model IDs, calls and tokens per role for each run. Model IDs are configurable, and AgentReady checks Token Factory's `/v1/models` at startup and picks the closest served Nemotron model if a configured ID isn't available (`python -m agentready models` shows the mapping).
+Each run shows the exact model IDs, call counts and tokens per role. Model IDs are configurable. At startup AgentReady asks Token Factory's `/v1/models` which models are served and falls back to the closest Nemotron model when a configured ID is missing; `python -m agentready models` prints the mapping.
 
-**Where Token Factory accelerated the work:** one OpenAI-compatible endpoint served all three tiers, so switching a role from Super to Ultra is a config change, not a new integration. Token Factory's throughput is also what makes running many agents in parallel per audit practical.
+All three models sit behind one OpenAI-compatible Token Factory endpoint, so moving a role from Super to Ultra is a one-line config change. Running many agents in parallel depends on Token Factory's throughput.
 
 ### Other Nebius and partner services
 
-- **Nebius Serverless Jobs** (`AGENTREADY_EXECUTOR=nebius`): every agent attempt can run as its own Serverless Job. AgentReady creates the job with `nebius ai job create`, injects the episode spec with `--inject-file`, polls it and reads the graded result from the job logs. This gives each attempt a clean, isolated container and lets an audit fan out across many machines. See `agentready/jobs.py` and `agentready/worker.py`.
-- **Nebius Serverless Endpoints**: the dashboard ships as a container (`Dockerfile`) and runs as an endpoint for the hosted demo.
-- **Tavily**: grounds the generated AGENTS.md in the official documentation of the repo's tools; sources are listed in the report.
+With `AGENTREADY_EXECUTOR=nebius`, every agent attempt runs as its own Nebius Serverless Job. AgentReady creates the job with `nebius ai job create`, passes the attempt in with `--inject-file`, polls it and reads the graded result from the job logs (`agentready/jobs.py`, `agentready/worker.py`). The dashboard itself ships as a container (`Dockerfile`) that runs as a Nebius Serverless Endpoint. Tavily supplies the documentation that the generated AGENTS.md cites, and the report lists those sources.
 
 ## Quick start
 
-Requirements: **Python 3.9+** and **git**. No pip packages are needed: AgentReady only uses the standard library, so it runs the same on Windows, macOS, Linux and inside a Nebius job.
+You need Python 3.9 or newer and git. There are no pip packages to install; AgentReady uses only the standard library.
 
 ```bash
 git clone https://github.com/<you>/AgentReady.git
@@ -77,13 +73,9 @@ python -m agentready doctor   # checks your key and talks to Nemotron once
 python -m agentready serve    # open http://localhost:8765
 ```
 
-On Windows, if `python` opens the Microsoft Store, use `py` instead (`py -m agentready serve`).
+On Windows, if `python` opens the Microsoft Store, use `py` instead (`py -m agentready serve`). You can also double-click `start.bat` (or run `./start.sh` on macOS and Linux); both create `.env` the first time, check the key and open the dashboard.
 
-Shortcut: on Windows double-click `start.bat`; on macOS/Linux run `./start.sh`. Both create `.env` on first use, check your key and open the dashboard.
-
-On the dashboard, click **Use the built-in parcelpost demo** and then **Test this repo**.
-
-Or from the command line:
+In the app, click "Try the parcelpost demo", then "Test this repo". From the command line:
 
 ```bash
 python -m agentready run example:parcelpost --tasks 5 --repeats 2
@@ -91,69 +83,77 @@ python -m agentready run https://github.com/owner/repo --tasks 6 --repeats 2 --p
 python -m agentready run C:\path\to\your\repo --test-cmd "python -m pytest -q"
 ```
 
-Each run writes `runs/<id>/run.json` (everything the dashboard shows) and `runs/<id>/AGENTS.md`.
+Each run writes `runs/<id>/run.json`, which holds everything the dashboard shows, and `runs/<id>/AGENTS.md`.
 
-### The app: PC and phone
+### The app
 
-The dashboard is an installable app (PWA) with five sections: **Tester** (the agent audit), **Verifier**, **History**, **Stats** and **Settings**. On a PC it has a sidebar; on a phone a bottom tab bar. It speaks English and Russian (switch in Settings) and has light/dark themes.
+The dashboard installs as an app (PWA) on a PC or a phone. It has five sections: Tester, Verifier, History, Stats and Settings, a sidebar on a PC and a tab bar on a phone, English and Russian, and light and dark themes. New visitors first see a short intro at `/welcome`.
 
-**Sign-in and PC + phone.** On first start you create the owner account (password stored as a PBKDF2 hash, sessions in an HttpOnly cookie). Opened on the same computer as `localhost`, that just works; from any other device (or on a server) the first account also needs the one-time setup code AgentReady prints in its console, so nobody else on the network can claim the server first.
+A run in progress can be stopped; attempts that already finished are kept. A finished run can be repeated with the same settings, and its report saved as a PDF from the browser's print dialog. History is searchable, and `Ctrl+K` jumps to any page or past run. On a phone you can share a GitHub link to AgentReady from any app and it opens in the Tester, ready to run.
 
-**Accounts: everyone has their own history.** You sign in with an email. Each account sees only its own runs, verifications, stats and live feed; someone else's run is a 404 even with its link. More people join on this computer, or from anywhere with a one-time invite link (Settings > *Invite someone*, valid 24 h). On a public demo server set `AGENTREADY_SIGNUP=open` to let anyone create an account (every account can make the server run a repo's tests, so use the docker or nebius executor there). Runs saved before accounts existed belong to the first account. To add your phone: run `start-phone.bat` (or `py -m agentready serve --host 0.0.0.0`), open **Settings > Connect a phone** on the PC and scan the QR code. The phone signs in by itself with a one-time code that expires in 5 minutes. Both devices share every run and verification, and each one gets a live notice when the other starts or finishes something ("Android phone: code check finished (100)"). Settings lists your devices; sign any of them out from any other. For a phone anywhere, deploy it as a Nebius Serverless Endpoint (below): over HTTPS it installs to the home screen and notifies you when a run finishes.
+### Accounts
 
-**Working with runs.** A run in progress can be stopped (finished attempts are kept); a finished one can be started again with the same settings, its new `AGENTS.md` copied or downloaded, and the whole report saved as a PDF from the browser's print dialog. History has search, the Verifier shows the checked diff with colours, and `Ctrl+K` opens a quick jump to any page or past run.
+You sign in with an email. Each account sees only its own runs, checks, stats and activity; opening someone else's run by its link returns a 404. The first account is created on the computer that runs AgentReady. From another device that first sign-up also needs the one-time setup code printed in the console, so nobody else on the network can claim the server first.
 
-(The public demo mode, `AGENTREADY_PUBLIC_DEMO=1`, has no accounts: viewing is open and starting runs needs `AGENTREADY_ACCESS_TOKEN`.)
+Other people join on that computer or with an invite link (Settings, "Invite someone", one use, valid 24 hours). On a public demo server, `AGENTREADY_SIGNUP=open` lets anyone sign up. Every account can make the server run the tests of a repository it chooses, so use the docker or nebius executor on such a server. Runs saved before accounts existed belong to the first account.
 
-### Verifier: check code an AI wrote
+To use your phone with the same account, start AgentReady with `start-phone.bat` (or `py -m agentready serve --host 0.0.0.0`), open Settings, "Connect a phone" on the PC and scan the QR code. The phone signs in with a one-time code that expires after 5 minutes. Both devices then see the same runs, and each gets a notice when the other starts or finishes something. To reach the app from outside your Wi-Fi, deploy it as a Nebius Serverless Endpoint (below); over HTTPS it installs to the home screen and can notify you when a run finishes.
 
-**No repository needed:** paste any Python an assistant gave you, or a diff, and leave the repository empty. The code is checked on its own (syntax, risky code, hard-coded secrets, packages that don't exist on PyPI, a Nemotron review); add the repository to also check that the patch applies and the tests still pass. Paste the diff an AI assistant produced (or open a `.patch` file) and the repo it is for. AgentReady applies it to a throwaway copy and checks, for real: the patch applies, the Python parses, tests were not edited, no risky code was added (`eval`, `shell=True`, bare `except`, hard-coded secrets), every imported package actually exists (AI assistants invent libraries), and the repo's own test suite passes before and after. With a key, Nemotron Super adds a review of the diff. The result is a 0-100 score with every check shown. The patched code runs through your tests, so only verify code you would run yourself.
+The public demo mode (`AGENTREADY_PUBLIC_DEMO=1`) has no accounts. Anyone can view runs, and starting one needs `AGENTREADY_ACCESS_TOKEN`.
+
+### Verifier
+
+Paste code an assistant gave you, or a diff, and click Verify. You can leave the repository field empty: the code is then checked on its own for syntax errors, `eval`, `shell=True`, bare `except`, keys written into the code, and imports of packages that don't exist on PyPI (assistants make these up). With a key, Nemotron Super also reviews it.
+
+If you add the repository, AgentReady applies the diff to a throwaway copy, checks that the tests were not edited, and runs the repo's test suite before and after the change. The result is a score from 0 to 100 with every check listed. The patched code runs through your tests, so only verify code you would be willing to run.
 
 ### The demo repository
 
-`examples/parcelpost` is a small, realistic shipping-quote library whose documentation drifted from its code: the README says to run `pytest` (not installed; the project uses `unittest`), never mentions that the package lives under `src/` (so imports need `PYTHONPATH=src`), and points to modules that no longer exist. That is the kind of repository where agents waste most of their steps, which makes the before/after difference easy to see.
+`examples/parcelpost` is a small shipping-quote library whose README no longer matches its code. It says to run `pytest`, but the project uses `unittest`. It never mentions that the package lives under `src/`, so imports fail without `PYTHONPATH=src`. It also points to modules that were renamed. Agents lose most of their steps on repositories like this, which makes the before and after difference easy to see.
 
-### What repos are supported
+### Supported repositories
 
-Python repositories with a test suite that passes on a clean checkout (pytest or unittest; AgentReady finds the command or you pass `--test-cmd`). The task generator, agent and grader are language-agnostic in design; the defect injector is currently Python-specific (it uses Python's `ast`).
+Python repositories whose test suite passes on a clean checkout, with pytest or unittest. AgentReady finds the test command, or you pass `--test-cmd`. The agent and the grader don't depend on the language, but the defect injector uses Python's `ast`, so other languages need their own injector.
 
-### In CI: keep the repo agent-ready
+### In CI
 
-`python -m agentready run <repo> --fail-under 70` exits with code 2 when agents struggle in the repo as it is, and on GitHub Actions writes the before/after table and the root causes to the job summary. [`docs/agentready-ci.yml`](docs/agentready-ci.yml) is a ready workflow that measures every pull request touching docs or agent instructions, so a README that drifts from the code is caught before it costs agents (and people) time.
+`python -m agentready run <repo> --fail-under 70` exits with code 2 when the repo's score is below 70. On GitHub Actions it also writes the before and after table and the root causes to the job summary. [`docs/agentready-ci.yml`](docs/agentready-ci.yml) is a workflow that runs it on pull requests that change docs or agent instructions, which catches a README that has drifted from the code.
 
 ## Execution and safety
 
-Agents run model-written shell commands, so AgentReady isolates them:
+Agents run shell commands that a model wrote. AgentReady limits what they can do:
 
-- every attempt gets a **throwaway copy** of the repo; your original folder is never modified;
-- **secrets are stripped** from the environment agents see (no API keys or tokens);
-- command **timeouts**, output limits and a deny-list for destructive commands;
-- file tools refuse paths outside the workspace;
-- `AGENTREADY_EXECUTOR=docker` runs every command in a fresh `python:3.12-slim` container with **no network**;
-- `AGENTREADY_EXECUTOR=nebius` runs every attempt in its own Nebius Serverless Job.
+- each attempt works in a throwaway copy of the repo, and your folder is never modified;
+- API keys and tokens are removed from the environment the agents see;
+- commands have timeouts and output limits, and a deny-list blocks obviously destructive ones;
+- the file tools refuse paths outside the workspace;
+- with `AGENTREADY_EXECUTOR=docker`, every command runs in a fresh `python:3.12-slim` container without network access;
+- with `AGENTREADY_EXECUTOR=nebius`, every attempt runs in its own Nebius Serverless Job.
 
-For untrusted repositories, use the docker or nebius executor.
+Finding the test command runs the repository's tests on the machine that hosts AgentReady, whichever executor you pick. Use the docker or nebius executor, on a machine you don't mind, for repositories you don't trust.
 
 ## Privacy
 
-AgentReady is self-hosted: there is no AgentReady company server, no analytics, no ads and no tracking.
+AgentReady is self-hosted. It has no analytics, ads or tracking, and there is no AgentReady server it reports to.
 
-- **Stored on your server only** (in `runs/`): your runs and verifications (repo name, generated tasks, agent steps, results), accounts (email and a PBKDF2 password hash; each account's data is visible only to it) and signed-in devices (a device name like "iPhone · Safari", sign-in time, last activity). Session tokens are stored only as hashes. IP addresses are kept in memory only, to slow down password guessing, and are never written to disk.
-- **One cookie**, `ar_session`: the HttpOnly sign-in session, strictly necessary, so there is no cookie banner. Language and theme are kept in the browser's local storage.
-- **Sent to third parties, only when you start something:** the code of the repo you test and the prompts built from it go to **Nebius Token Factory** (NVIDIA Nemotron models) under your own API key; the names of the repo's test runner and dependencies (not your code) go to **Tavily** for documentation search when a Tavily key is set; a public GitHub URL you enter is cloned from **GitHub**. Their own privacy policies apply.
-- **Nothing else leaves the page:** fonts are the system's own (no Google Fonts). The QR code library is loaded from cdnjs only when you open "Connect a phone".
-- **Delete everything** at any time: Settings > *Delete all my data* removes your runs, verifications, account and devices after you confirm with your password; other accounts are untouched. Or delete the `runs/` folder.
+It stores, in `runs/` on your machine: runs and checks (repository name, generated tasks, agent steps and results), accounts (email and a PBKDF2 password hash) and signed-in devices (a name such as "iPhone · Safari", sign-in time, last activity). Session tokens are stored only as hashes. IP addresses stay in memory, where they slow down password guessing, and are never written to disk.
+
+The only cookie is `ar_session`, the HttpOnly sign-in session. It is strictly necessary, so there is no cookie banner. Language and theme are kept in the browser's local storage.
+
+Data leaves your machine only when you start something. The code of the repository you test, and prompts built from it, go to Nebius Token Factory under your API key. The names of the repo's test runner and dependencies (not the code) go to Tavily when a Tavily key is set. A GitHub URL you enter is cloned from GitHub. The app uses system fonts, so it makes no font requests, and it loads a QR code library from cdnjs only when you open "Connect a phone".
+
+Settings, "Delete all my data" removes your runs, checks, account and devices after you enter your password. Other accounts are not touched. Deleting the `runs/` folder removes everything.
 
 ## Deploying on Nebius
 
-Build and push the image (used both by the endpoint and by the jobs):
+Build and push the image (the endpoint and the jobs both use it):
 
 ```bash
 docker build -t <registry>/agentready:latest .
 docker push <registry>/agentready:latest
 ```
 
-Hosted dashboard as a **Serverless Endpoint**:
+The dashboard as a Serverless Endpoint:
 
 ```bash
 nebius ai endpoint create --name agentready --image <registry>/agentready:latest \
@@ -162,16 +162,16 @@ nebius ai endpoint create --name agentready --image <registry>/agentready:latest
   --env AGENTREADY_PUBLIC_DEMO=1 --env AGENTREADY_ACCESS_TOKEN=<token-for-judges>
 ```
 
-`AGENTREADY_PUBLIC_DEMO=1` limits sources to the built-in examples and public GitHub repos, caps run sizes and allows one run at a time. Viewing runs is open; starting one requires the access token.
+`AGENTREADY_PUBLIC_DEMO=1` accepts only the built-in examples and public GitHub repos, caps run sizes and allows one run at a time.
 
-Agent attempts as **Serverless Jobs**: set `AGENTREADY_EXECUTOR=nebius`, `AGENTREADY_NEBIUS_IMAGE`, run `nebius auth login`, and start a run with a git URL. Prefer `AGENTREADY_NEBIUS_KEY_SECRET` (a MysteryBox secret) over passing the key as a plain env var.
+To run agent attempts as Serverless Jobs, set `AGENTREADY_EXECUTOR=nebius` and `AGENTREADY_NEBIUS_IMAGE`, run `nebius auth login`, and start a run with a git URL. Pass the key as a MysteryBox secret with `AGENTREADY_NEBIUS_KEY_SECRET` rather than as a plain environment variable.
 
 ## Project layout
 
 ```
 agentready/
   pipeline.py    the 9-stage pipeline and live run state
-  tasks.py       defect injection, verification against the test suite, issue writing
+  tasks.py       defect injection, checking it against the test suite, bug reports
   agent.py       the Nemotron Super coding agent (JSON tool protocol)
   episodes.py    one attempt: fresh workspace -> agent -> restore tests -> grade
   diagnose.py    Nano triage, Ultra synthesis, AGENTS.md writer
@@ -179,13 +179,13 @@ agentready/
   llm.py         Token Factory client, role routing, model discovery, usage accounting
   sandbox.py     local and docker command runners
   jobs.py        Nebius Serverless Jobs executor;  worker.py: job entry point
-  metrics.py     success rate, Wilson 95% CI, readiness score
-  verify.py      AI-code verifier (patch -> checks -> score)
-  auth.py        account, sessions, devices, QR pairing
-  server.py      dashboard + JSON API;  cli.py: command line
+  metrics.py     success rate, Wilson 95% interval, readiness score
+  verify.py      code checker (code or diff -> checks -> score)
+  auth.py        accounts, invites, sessions, devices, QR pairing
+  server.py      dashboard and JSON API;  cli.py: command line
 web/             the app: index.html (no build step), manifest, service worker, icons
 examples/        demo repository
-tests/           offline test-suite (scripted model stand-in, no network)
+tests/           offline tests (a scripted stand-in for the model, no network)
 ```
 
 ## Tests
@@ -194,13 +194,13 @@ tests/           offline test-suite (scripted model stand-in, no network)
 python -m unittest discover -s tests -v   # or: python -m pytest -q
 ```
 
-The offline suite checks JSON extraction, the statistics, the sandbox policy, defect injection, test-command detection and a full end-to-end pipeline run, stopping a run, and the HTTP API (sign-in, pairing, protection). GitHub Actions runs it on every push. It uses a scripted stand-in for the model so it runs without network or keys; the product itself always calls Nemotron on Token Factory.
+The tests run offline against a scripted stand-in for the model. They cover JSON extraction, the statistics, the sandbox policy, defect injection, test-command detection, a full pipeline run, stopping a run, the code checker with and without a repository, and the HTTP API: sign-in, separate accounts, invites, pairing and CSRF protection. GitHub Actions runs them on every push.
 
 ## Limitations
 
-- Agent behaviour is non-deterministic. Use 2+ attempts per task and read the confidence interval before trusting small differences.
-- Planted defects are realistic but small, single-location bugs; they measure whether agents can find their way around your repo and verify their work, not whether they can build large features.
-- The readiness score is relative to the model used (Nemotron Super by default).
+- Agents are non-deterministic. Use at least two attempts per task, and check whether the 95% intervals overlap before trusting a small difference.
+- The planted defects are small bugs in one place. They show whether agents can find their way around your repo and check their own work. They say little about building large features.
+- The score depends on the model under test (Nemotron Super by default).
 
 ## License
 
