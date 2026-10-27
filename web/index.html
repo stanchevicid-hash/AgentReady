@@ -12,33 +12,30 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AgentReady">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#EDF0F2; --sheet:#FFFFFF; --ink:#18213A; --ink-2:#4A5570; --ink-3:#7A8599; --rule:#D3D9E0;
+  --paper:#EDF0F2; --sheet:#FFFFFF; --ink:#18213A; --ink-2:#4A5570; --ink-3:#5E6A80; --rule:#D3D9E0;
   --grid:rgba(24,33,58,.05);
   --base:#8C96AA; --imp:#2F5BEA; --imp-soft:#E3EAFD;
-  --ok:#1E8A5A; --ok-soft:#DDF2E7; --bad:#B4233C; --bad-soft:#F8E1E5; --warn:#B7791F; --warn-soft:#F6ECD9;
+  --ok:#176F47; --ok-soft:#DDF2E7; --bad:#B4233C; --bad-soft:#F8E1E5; --warn:#8A5A10; --warn-soft:#F6ECD9;
   --a-read:#7C93C8; --a-search:#9C7CC8; --a-run:#C8A14A; --a-edit:#2F5BEA; --a-err:#B4233C;
-  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
-  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --display:"Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, system-ui, sans-serif;
+  --body:"Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, system-ui, sans-serif;
+  --mono:ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", monospace;
   --nav-h:64px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --paper:#141A29; --sheet:#1B2335; --ink:#E6EAF3; --ink-2:#B3BCD0; --ink-3:#8590A8; --rule:#2C3650;
-    --grid:rgba(230,234,243,.04); --imp:#6F8FFF; --imp-soft:#24305A; --ok:#3CC384; --ok-soft:#173B2C;
-    --bad:#F0657D; --bad-soft:#40212A; --warn:#E0A84A; --warn-soft:#3A2E17; color-scheme: dark;
+    --grid:rgba(230,234,243,.04); --imp:#8AA2FF; --imp-soft:#24305A; --ok:#3CC384; --ok-soft:#173B2C;
+    --bad:#FF8597; --bad-soft:#40212A; --warn:#E0A84A; --warn-soft:#3A2E17; color-scheme: dark;
   }
 }
 :root[data-theme="dark"]{
   --paper:#141A29; --sheet:#1B2335; --ink:#E6EAF3; --ink-2:#B3BCD0; --ink-3:#8590A8; --rule:#2C3650;
-  --grid:rgba(230,234,243,.04); --imp:#6F8FFF; --imp-soft:#24305A; --ok:#3CC384; --ok-soft:#173B2C;
-  --bad:#F0657D; --bad-soft:#40212A; --warn:#E0A84A; --warn-soft:#3A2E17; color-scheme: dark;
+  --grid:rgba(230,234,243,.04); --imp:#8AA2FF; --imp-soft:#24305A; --ok:#3CC384; --ok-soft:#173B2C;
+  --bad:#FF8597; --bad-soft:#40212A; --warn:#E0A84A; --warn-soft:#3A2E17; color-scheme: dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -275,6 +272,9 @@ dialog::backdrop{background:rgba(24,33,58,.45)}
 .step .th{font-size:14px;color:var(--ink-2);margin:2px 0 6px}
 .step pre{margin:0;font:12px/1.5 var(--mono);background:var(--paper);padding:8px 10px;border-radius:6px;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
 .issue{background:var(--paper);border-radius:8px;padding:10px 14px;font-size:14px;margin:12px 0}
+.skip{position:absolute;left:8px;top:-60px;z-index:50;background:var(--ink);color:var(--sheet);padding:10px 14px;border-radius:8px}
+.skip:focus{top:8px}
+#app:focus{outline:none}
 #qr{background:#fff;padding:10px;border-radius:8px;display:inline-block}
 
 /* ---------- motion + loading ---------- */
@@ -371,19 +371,20 @@ kbd{font:600 11px var(--mono);padding:2px 6px;border:1px solid var(--rule);borde
 </style>
 </head>
 <body>
+<a class="skip" href="#app">Skip to content</a>
 <div class="shell">
   <nav class="side" id="side" aria-label="Main"></nav>
   <div>
     <header class="mobilehead"><a class="mark" href="/" data-nav>LOGO AgentReady</a><div class="chips" id="mchips"></div></header>
-    <main class="content"><div class="wrap" id="app"></div></main>
+    <main class="content"><div class="wrap" id="app" tabindex="-1"></div></main>
   </div>
 </div>
 <nav class="tabs" id="tabs" aria-label="Main"></nav>
 
-<dialog id="pal" aria-label="Command palette"><input id="pal-q" autocomplete="off" spellcheck="false"><ul id="pal-list" role="listbox"></ul></dialog>
+<dialog id="pal" aria-label="Command palette"><input id="pal-q" autocomplete="off" spellcheck="false" aria-label="Search pages and runs" role="combobox" aria-controls="pal-list" aria-expanded="true"><ul id="pal-list" role="listbox"></ul></dialog>
 <dialog id="dlg" aria-labelledby="dlg-title">
   <div class="dlg-head"><h3 id="dlg-title"></h3><span class="faint" id="dlg-meta"></span><button class="btn ghost small" style="margin-left:auto" id="dlg-close"></button></div>
-  <div class="dlg-body" id="dlg-body"></div>
+  <div class="dlg-body" id="dlg-body" tabindex="0"></div>
 </dialog>
 
 <script>
@@ -532,6 +533,8 @@ en: {
   ago: s => s < 60 ? "now" : s < 3600 ? `${Math.floor(s/60)} min ago` : s < 86400 ? `${Math.floor(s/3600)} h ago` : `${Math.floor(s/86400)} d ago`,
   fromDev: d => `${d}:`, open: "Open",
   liveH: "Live across devices",
+  eraseH: "Delete all my data", eraseP: "Removes every run, verification, the account and all signed-in devices from this server. This cannot be undone.",
+  eraseBtn: "Delete everything", erasePw: "Type your password to confirm",
   setupCode: "Setup code", setupCodeHint: "Printed in the AgentReady console on the computer it runs on. Not needed when you open it on that computer as localhost.",
   stop: "Stop", stopQ: "Stop this run? Finished attempts are kept.", stopping: "Stopping…",
   again: "Run again", copyMd: "Copy", mdCopied: "AGENTS.md copied", print: "PDF / print",
@@ -649,6 +652,8 @@ ru: {
   ago: s => s < 60 ? "сейчас" : s < 3600 ? `${Math.floor(s/60)} мин назад` : s < 86400 ? `${Math.floor(s/3600)} ч назад` : `${Math.floor(s/86400)} дн назад`,
   fromDev: d => `${d}:`, open: "Открыть",
   liveH: "Вживую на всех устройствах",
+  eraseH: "Удалить все мои данные", eraseP: "Удаляет с этого сервера все прогоны, проверки, аккаунт и все подключённые устройства. Отменить нельзя.",
+  eraseBtn: "Удалить всё", erasePw: "Введите пароль для подтверждения",
   setupCode: "Код настройки", setupCodeHint: "Напечатан в консоли AgentReady на компьютере, где он запущен. Не нужен, если открыть там же через localhost.",
   stop: "Остановить", stopQ: "Остановить прогон? Завершённые попытки сохранятся.", stopping: "Останавливаем…",
   again: "Запустить снова", copyMd: "Копировать", mdCopied: "AGENTS.md скопирован", print: "PDF / печать",
@@ -921,7 +926,7 @@ async function realSpecimen(id){
     .sort((x, y) => (y.a.success - y.b.success) - (x.a.success - x.b.success) || (y.b.n_steps - y.a.n_steps) - (x.b.n_steps - x.a.n_steps))[0];
   if (!pick) return;
   const t = L();
-  const row = (label, ep) => `<div class="lane" data-go="${esc(id)}"><span class="id">${label}</span><span class="ticks">${ticksOf(ep.steps)}</span><span class="verdict ${ep.success ? "solved" : "failed"}">${ep.success ? t.lane.solved : t.lane.failed}</span></div>`;
+  const row = (label, ep) => `<button class="lane" data-go="${esc(id)}"><span class="id">${label}</span><span class="ticks" aria-hidden="true">${ticksOf(ep.steps)}</span><span class="verdict ${ep.success ? "solved" : "failed"}">${ep.success ? t.lane.solved : t.lane.failed}</span></button>`;
   box.innerHTML = `<figure class="sheet" style="margin:0 0 18px;padding:16px 18px"><figcaption class="faint" style="font-size:13px;margin-bottom:8px">${t.specimenCap(esc(id), esc(pick.tid))}</figcaption>${row(t.before, pick.b)}${row(t.after, pick.a)}</figure>`;
   box.querySelectorAll("[data-go]").forEach(el => el.onclick = () => go("/run/" + el.dataset.go));
 }
@@ -1125,7 +1130,7 @@ function renderRun(){
   <section class="sheet block">
     <div class="block-head"><h2>${t.instr}</h2>
       ${r.agents_md ? `<div class="mdtabs"><button class="tab" data-md="after" aria-pressed="${MDVIEW==="after"}">${t.newMd}</button><button class="tab" data-md="before" aria-pressed="${MDVIEW==="before"}">${t.oldMd}</button></div>` : ""}</div>
-    ${r.agents_md ? `<div class="md">${MDVIEW === "after" ? md(r.agents_md) : (r.agents_md_before ? md(r.agents_md_before) : `<p class="faint">${t.noOld}</p>`)}</div>` : `<p class="faint">${t.notYet}</p>`}
+    ${r.agents_md ? `<div class="md" tabindex="0" role="region" aria-label="AGENTS.md">${MDVIEW === "after" ? md(r.agents_md) : (r.agents_md_before ? md(r.agents_md_before) : `<p class="faint">${t.noOld}</p>`)}</div>` : `<p class="faint">${t.notYet}</p>`}
     ${(r.research||[]).filter(x => x.url).length ? `<details style="margin-top:12px"><summary>${t.sources(r.research.filter(x=>x.url).length)}</summary><ul>${r.research.filter(x=>x.url).map(x => `<li><a href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener noreferrer">${esc(x.title || x.url)}</a></li>`).join("")}</ul></details>` : ""}
   </section>` : ""}
 
@@ -1140,7 +1145,7 @@ function renderRun(){
       : `<p class="faint">${t.noTasks}</p>`}
   </section>
   <section class="sheet block"><details open><summary>${t.log((r.events||[]).length)}</summary>
-    <div class="log" id="log">${(r.events||[]).map(e => `<div>[${e.t}s] ${esc(e.msg)}</div>`).join("")}</div></details></section>` : ""}`;
+    <div class="log" id="log" tabindex="0" role="region" aria-label="Log">${(r.events||[]).map(e => `<div>[${e.t}s] ${esc(e.msg)}</div>`).join("")}</div></details></section>` : ""}`;
   renderShell();
   window.scrollTo(0, scroll);
   const log = $("#log"); if (log) log.scrollTop = log.scrollHeight;
@@ -1185,8 +1190,8 @@ function openTrajectory(key){
     (ep.tests_touched?.length ? `<p style="font-size:14px;color:var(--bad)">${t.tampered(ep.tests_touched.map(esc).join(", "))}</p>` : "") +
     (ep.error ? `<p style="font-size:14px;color:var(--bad)">${esc(ep.error)}</p>` : "") +
     ep.steps.map(s => `<div class="step"><span class="n">${s.n}</span><div><div class="act">${esc(s.action)} ${esc(JSON.stringify(s.args)).slice(0, 300)}</div>
-      ${s.thought ? `<div class="th">${esc(s.thought)}</div>` : ""}<pre>${esc(s.observation)}</pre></div></div>`).join("") +
-    `<div class="step"><span class="n">✓</span><div><div class="act">${t.grading}</div><pre>${esc(ep.grade_output)}</pre></div></div>`;
+      ${s.thought ? `<div class="th">${esc(s.thought)}</div>` : ""}<pre tabindex="0">${esc(s.observation)}</pre></div></div>`).join("") +
+    `<div class="step"><span class="n">✓</span><div><div class="act">${t.grading}</div><pre tabindex="0">${esc(ep.grade_output)}</pre></div></div>`;
   $("#dlg").showModal();
 }
 $("#dlg-close").onclick = () => $("#dlg").close();
@@ -1273,7 +1278,7 @@ function renderVerify(){
       return `<li>${badge(st)}<div><div class="t">${name} <span class="faint" style="font-weight:400;font-size:13px">· ${t.vSt[st]}</span></div>
         <div class="x">${about}${c?.detail ? ` — <span class="mono">${esc(c.detail)}</span>` : ""}</div>
         ${k === "ai_review" && c?.issues?.length ? c.issues.map(i => `<div class="finding"><span class="sev ${esc(i.severity)}">${esc(t.sev[i.severity] || i.severity)}</span><b>${esc(i.title)}</b>${i.file ? ` <span class="mono faint">${esc(i.file)}</span>` : ""}<p>${esc(i.detail)}</p></div>`).join("") : ""}
-        ${items.length ? `<pre>${items.map(esc).join("\n")}</pre>` : ""}</div></li>`; }).join("")}
+        ${items.length ? `<pre tabindex="0">${items.map(esc).join("\n")}</pre>` : ""}</div></li>`; }).join("")}
   </ul></section>
   <section class="sheet block"><details ${v.patch && v.patch.length < 20000 ? "open" : ""}><summary>${t.diffH}${v.files?.length ? ` <span class="faint">· ${t.vFiles(v.files.length)}</span>` : ""}</summary>
     ${v.patch ? diffView(v.patch) : `<p class="faint">${t.noDiff}</p>`}</details></section>`;
@@ -1284,7 +1289,7 @@ function renderVerify(){
 
 function diffView(patch){
   const cls = l => /^(\+\+\+|---|diff )/.test(l) ? "file" : l.startsWith("@@") ? "hunk" : l[0] === "+" ? "add" : l[0] === "-" ? "rm" : "";
-  return `<div class="diff" style="margin-top:10px">${patch.split("\n").map(l => `<div class="${cls(l)}">${esc(l)}</div>`).join("")}</div>`;
+  return `<div class="diff" style="margin-top:10px" tabindex="0" role="region" aria-label="Diff">${patch.split("\n").map(l => `<div class="${cls(l)}">${esc(l)}</div>`).join("")}</div>`;
 }
 
 /* ------------------------------------------------------------- history */
@@ -1386,6 +1391,11 @@ async function settingsPage(){
       <section class="sheet block"><h3 style="margin-bottom:6px">${t.account}</h3>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="avatar" style="width:40px;height:40px;font-size:17px">${esc(ME.user[0].toUpperCase())}</span>
           <span>${t.signedAs(esc(ME.user))}</span><button class="btn ghost small danger" id="logout" style="margin-left:auto">${ic("logout", 'style="width:16px;height:16px"')}${t.logout}</button></div></section>
+      <section class="sheet block" style="border-color:var(--bad)"><h3 style="margin-bottom:6px;color:var(--bad)">${t.eraseH}</h3>
+        <p class="muted" style="margin:0 0 12px;font-size:14px">${t.eraseP}</p>
+        <form id="erase" class="field"><input type="password" id="erasepw" autocomplete="current-password" required aria-label="${t.erasePw}" placeholder="${t.erasePw}">
+          <button class="btn danger" style="background:var(--bad);color:var(--sheet)">${t.eraseBtn}</button></form>
+        <div class="err" id="eraseerr" role="alert"></div></section>
     </div>` : ""}
   </div>`;
   renderShell();
@@ -1396,6 +1406,12 @@ async function settingsPage(){
   if (!ME) return;
   $("#logout").onclick = async () => { await post("/api/auth/logout").catch(() => {}); location.replace("/login"); };
   $("#pairgo").onclick = showPair;
+  $("#erase").onsubmit = async e => {
+    e.preventDefault();
+    if (!confirm(t.eraseP)) return;
+    try { await post("/api/erase", {password: $("#erasepw").value}); location.replace("/"); }
+    catch(err){ $("#eraseerr").textContent = err.message; }
+  };
   renderDevices();
 }
 
@@ -1433,7 +1449,8 @@ async function showPair(){
 }
 
 function loadQR(url){
-  const draw = () => { const el = $("#qr"); if (el && window.QRCode){ el.innerHTML = ""; new QRCode(el, {text: url, width: 180, height: 180}); } };
+  const draw = () => { const el = $("#qr"); if (el && window.QRCode){ el.innerHTML = ""; new QRCode(el, {text: url, width: 180, height: 180});
+    el.setAttribute("role", "img"); el.setAttribute("aria-label", "QR code: " + url); el.removeAttribute("title"); } };
   if (window.QRCode) return draw();
   const s = document.createElement("script");
   s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"; s.onload = draw;
@@ -1441,7 +1458,7 @@ function loadQR(url){
 }
 
 /* ------------------------------------------------------------- router + app */
-function go(path){ history.pushState({}, "", path); route(); window.scrollTo(0, 0); }
+function go(path){ history.pushState({}, "", path); route(); window.scrollTo(0, 0); $("#app")?.focus({preventScroll: true}); }
 let ROUTE_N = 0, LAST_PATH = "";
 function skeleton(){
   return `<div class="skel" style="height:150px;margin:18px 0"></div><div class="grid g2"><div class="skel" style="height:260px"></div><div class="skel" style="height:260px"></div></div>`;
