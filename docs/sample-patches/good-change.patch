@@ -1,0 +1,11 @@
+--- a/src/parcelpost/core/discounts.py
++++ b/src/parcelpost/core/discounts.py
+@@ -14,7 +14,7 @@
+         return 0.10
+     if shipments_last_year >= 10:
+         return 0.05
+-    return 0.0
++    return 0.0  # no loyalty discount below 10 shipments
+ 
+ 
+ def apply_promo(amount: float, code: str | None, loyalty_rate: float = 0.0) -> float:
