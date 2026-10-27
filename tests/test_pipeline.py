@@ -79,6 +79,8 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(m["improved"]["success_rate"], 1.0)
         self.assertLess(m["improved"]["avg_steps"], m["baseline"]["avg_steps"])
         self.assertRegex(st.agents_md, r"python -m (pytest|unittest)")  # pytest wins when installed
+        from agentready.cli import ci_summary
+        self.assertIn(f"| Agent-Ready score | {m['score_before']} | {m['score_after']} |", ci_summary(st))
         saved = json.loads((runs / st.id / "run.json").read_text())
         self.assertEqual(saved["status"], "done")
         self.assertTrue((runs / st.id / "AGENTS.md").exists())

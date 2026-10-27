@@ -6,6 +6,14 @@ AgentReady plants real bugs in your codebase, sends NVIDIA Nemotron coding agent
 
 Built for the **Nebius x NVIDIA Global AI Hackathon**, Coding and Agentic Engineering track. Every model call goes to **NVIDIA Nemotron on Nebius Token Factory**.
 
+![A real run on the demo repo: Agent-Ready score 62 to 93, tasks solved 70% to 100%, 19.1 to 13.2 steps per attempt](docs/screenshots/run-overview.png)
+
+| Every agent attempt, step by step | Verify a diff an AI wrote | On the phone |
+|---|---|---|
+| ![Lanes of agent attempts, one mark per step, before and after the new AGENTS.md](docs/screenshots/run-attempts.png) | ![Verifier: score 56, invented package and failing tests caught, diff shown](docs/screenshots/verifier.png) | ![The same run report on a phone](docs/screenshots/phone-run.png) |
+
+All numbers in these screenshots come from a real run (`example:parcelpost`, 5 tasks × 2 attempts × 2 conditions, NVIDIA Nemotron on Token Factory).
+
 ## Why this exists
 
 Most code is now written with AI agents, but every repository is a different maze. Teams write `AGENTS.md` / `CLAUDE.md` / Copilot instruction files by guesswork and never learn whether they help. Agents then burn tokens rediscovering how to run the tests, read a README that drifted from the code years ago, or fix the wrong file.
@@ -104,6 +112,10 @@ Paste the diff an AI assistant produced (or open a `.patch` file) and the repo i
 ### What repos are supported
 
 Python repositories with a test suite that passes on a clean checkout (pytest or unittest; AgentReady finds the command or you pass `--test-cmd`). The task generator, agent and grader are language-agnostic in design; the defect injector is currently Python-specific (it uses Python's `ast`).
+
+### In CI: keep the repo agent-ready
+
+`python -m agentready run <repo> --fail-under 70` exits with code 2 when agents struggle in the repo as it is, and on GitHub Actions writes the before/after table and the root causes to the job summary. [`docs/agentready-ci.yml`](docs/agentready-ci.yml) is a ready workflow that measures every pull request touching docs or agent instructions, so a README that drifts from the code is caught before it costs agents (and people) time.
 
 ## Execution and safety
 

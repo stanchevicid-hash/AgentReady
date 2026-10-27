@@ -1,0 +1,23 @@
+# Copy to .github/workflows/agentready.yml in your repo.
+# Every pull request that touches docs or agent instructions is measured: agents fix bugs planted
+# in a copy of the repo, and the job fails if they struggle (Agent-Ready score below 70).
+# The run page shows the score, what got in the agents' way and the AGENTS.md that fixes it.
+name: agent-readiness
+on:
+  pull_request:
+    paths: ["**/*.md", ".github/copilot-instructions.md", ".cursorrules", "pyproject.toml", "setup.cfg"]
+jobs:
+  agentready:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest && pip install -e . || true
+      - run: git clone --depth 1 https://github.com/<you>/AgentReady /tmp/agentready
+      - name: Measure
+        env:
+          NEBIUS_API_KEY: ${{ secrets.NEBIUS_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        run: cd /tmp/agentready && python -m agentready run "$GITHUB_WORKSPACE" --tasks 4 --repeats 2 --fail-under 70

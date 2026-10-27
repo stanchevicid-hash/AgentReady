@@ -273,8 +273,8 @@ dialog::backdrop{background:rgba(24,33,58,.45)}
 .step .th{font-size:14px;color:var(--ink-2);margin:2px 0 6px}
 .step pre{margin:0;font:12px/1.5 var(--mono);background:var(--paper);padding:8px 10px;border-radius:6px;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
 .issue{background:var(--paper);border-radius:8px;padding:10px 14px;font-size:14px;margin:12px 0}
-.skip{position:absolute;left:8px;top:-60px;z-index:50;background:var(--ink);color:var(--sheet);padding:10px 14px;border-radius:8px}
-.skip:focus{top:8px}
+.skiplink{position:absolute;left:8px;top:-60px;z-index:50;background:var(--ink);color:var(--sheet);padding:10px 14px;border-radius:8px}
+.skiplink:focus{top:8px}
 #app:focus{outline:none}
 #qr{background:#fff;padding:10px;border-radius:8px;display:inline-block}
 
@@ -394,7 +394,7 @@ kbd{font:600 11px var(--mono);padding:2px 6px;border:1px solid var(--rule);borde
 </style>
 </head>
 <body>
-<a class="skip" href="#app">Skip to content</a>
+<a class="skiplink" href="#app">Skip to content</a>
 <div class="offline-bar" role="status" id="offbar"></div>
 <div class="shell">
   <nav class="side" id="side" aria-label="Main"></nav>
