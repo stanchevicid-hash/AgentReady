@@ -531,7 +531,9 @@ const ic = (name, extra = "", cls = "") => `<svg class="i ${cls}" viewBox="0 0 2
 const T = {
 en: {
   nav: {tester:"Tester", verify:"Verifier", history:"History", stats:"Stats", settings:"Settings"},
-  keyOk: "Nebius key", keyMissing: "No Nebius key", tavilyOn: "Tavily", tavilyOff: "No Tavily",
+  keyOk: "Nebius key", keyMissing: "No Nebius key", tavilyOn: "Tavily", tavilyOff: "No Tavily", noCredits: "No Nebius credits",
+  creditsTitle: "Your Nebius Token Factory account is out of credits",
+  creditsSteps: ["Top up at <a href=\"https://tokenfactory.nebius.com\" target=\"_blank\" rel=\"noopener\">tokenfactory.nebius.com</a>.", "Then start the run again: nothing else to change."],
   install: "Install app", iosInstall: "To install: tap Share, then “Add to Home Screen”.",
   keyTitle: "Add your Nebius key to start runs",
   keySteps: ["Create a key at <a href=\"https://tokenfactory.nebius.com\" target=\"_blank\" rel=\"noopener\">tokenfactory.nebius.com</a>.",
@@ -689,7 +691,9 @@ en: {
 },
 ru: {
   nav: {tester:"Тестер", verify:"Проверка", history:"История", stats:"Статистика", settings:"Настройки"},
-  keyOk: "Ключ Nebius", keyMissing: "Нет ключа Nebius", tavilyOn: "Tavily", tavilyOff: "Нет Tavily",
+  keyOk: "Ключ Nebius", keyMissing: "Нет ключа Nebius", tavilyOn: "Tavily", tavilyOff: "Нет Tavily", noCredits: "Нет кредитов Nebius",
+  creditsTitle: "На аккаунте Nebius Token Factory закончились кредиты",
+  creditsSteps: ["Пополните баланс на <a href=\"https://tokenfactory.nebius.com\" target=\"_blank\" rel=\"noopener\">tokenfactory.nebius.com</a>.", "Потом просто запустите прогон снова, больше ничего менять не нужно."],
   install: "Установить", iosInstall: "Чтобы установить: «Поделиться» → «На экран „Домой“».",
   keyTitle: "Добавьте ключ Nebius, чтобы запускать проверки",
   keySteps: ["Создайте ключ на <a href=\"https://tokenfactory.nebius.com\" target=\"_blank\" rel=\"noopener\">tokenfactory.nebius.com</a>.",
@@ -1035,7 +1039,7 @@ function section(){
 function statusChips(){
   const h = HEALTH, t = L();
   if (!h) return `<span class="chip bad">${t.offline}</span>`;
-  return `<span class="chip ${h.api_key_set ? "ok" : "bad"}">${h.api_key_set ? t.keyOk : t.keyMissing}</span>` +
+  return `<span class="chip ${h.api_key_set && !h.out_of_credits ? "ok" : "bad"}">${!h.api_key_set ? t.keyMissing : h.out_of_credits ? t.noCredits : t.keyOk}</span>` +
          `<span class="chip ${h.tavily_set ? "ok" : "warn"}">${h.tavily_set ? t.tavilyOn : t.tavilyOff}</span>`;
 }
 function renderShell(){
@@ -1051,7 +1055,7 @@ function renderShell(){
   $(".mobilehead .mark").innerHTML = `${LOGO} AgentReady`;
   $("#msearch").innerHTML = ic("search"); $("#msearch").onclick = openPalette; $("#msearch").hidden = !ME && !!AUTH?.accounts;
   document.title = (cur === "tester" && location.pathname === "/" ? "" : t.nav[cur] + " · ") + "AgentReady";
-  $("#mchips").innerHTML = HEALTH && !HEALTH.api_key_set ? `<span class="chip bad">${t.keyMissing}</span>` : "";
+  $("#mchips").innerHTML = HEALTH && (!HEALTH.api_key_set || HEALTH.out_of_credits) ? `<span class="chip bad">${HEALTH.api_key_set ? t.noCredits : t.keyMissing}</span>` : "";
   document.querySelectorAll("[data-nav]").forEach(a => a.onclick = e => { e.preventDefault(); go(a.getAttribute("href")); });
 }
 const topbar = title => `<div class="topbar"><h1>${title}</h1><div class="chips">${statusChips()}</div></div>`;
@@ -1061,7 +1065,10 @@ async function tester(){
   const t = L();
   const [runs, vers] = await Promise.all([api("/api/runs").catch(() => []), api("/api/verify").catch(() => [])]);
   const ex = (HEALTH?.examples || [])[0];
-  const keyBox = HEALTH && !HEALTH.api_key_set ? `<div class="sheet notice" role="note"><b>${t.keyTitle}</b>
+  if (HEALTH) HEALTH = await api("/api/health").catch(() => HEALTH);  // fresh: credits may have run out since
+  const keyBox = HEALTH?.api_key_set && HEALTH.out_of_credits ? `<div class="sheet notice" role="note" style="border-left-color:var(--bad)"><b>${t.creditsTitle}</b>
+      <ol>${t.creditsSteps.map(s => `<li>${s}</li>`).join("")}</ol></div>`
+    : HEALTH && !HEALTH.api_key_set ? `<div class="sheet notice" role="note"><b>${t.keyTitle}</b>
       <ol>${t.keySteps.map(s => `<li>${s}</li>`).join("")}</ol></div>` : "";
   $("#app").innerHTML = `
   <div class="pagehero">${ic("tester", "", "heroico")}

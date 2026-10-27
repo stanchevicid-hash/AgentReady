@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agentready import research  # noqa: E402
 from agentready.config import Settings  # noqa: E402
-from agentready.llm import TokenFactoryLLM  # noqa: E402
+from agentready.llm import BILLING, LLMError, TokenFactoryLLM  # noqa: E402
 
 SEEN = []
 
@@ -36,6 +36,11 @@ class Mock(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         SEEN.append(("POST", self.path, body))
+        if body.get("model") == "broke":  # an account with no credits left
+            self.send_response(402)
+            self.send_header("Content-Length", "2")
+            self.end_headers()
+            return self.wfile.write(b"{}")
         if self.path == "/search":
             return self._send({"results": [{"title": "unittest docs", "url": "https://docs.python.org/3/library/unittest.html",
                                             "content": "Command-Line Interface"}]})
@@ -68,6 +73,17 @@ class ClientTests(unittest.TestCase):
         post = [x for x in SEEN if x[0] == "POST" and x[1] == "/chat/completions"][-1][2]
         self.assertEqual(post["model"], "nvidia/Nemotron-3-Nano-30B-A3B")
         self.assertIn(("GET", "/models", "Bearer k"), SEEN)
+
+    def test_out_of_credits_is_reported_once(self):
+        llm = TokenFactoryLLM(Settings(api_key="k", base_url=self.base, models={"nano": "broke"}))
+        before = len(SEEN)
+        with self.assertRaisesRegex(LLMError, "out of credits"):
+            llm.chat("nano", [{"role": "user", "content": "hi"}])
+        self.assertEqual(len(SEEN) - before, 1)  # not retried
+        self.assertTrue(BILLING["out_of_credits"])
+        llm.models["nano"] = "nvidia/Nemotron-3-Nano-30B-A3B"
+        llm.chat("nano", [{"role": "user", "content": "hi"}])
+        self.assertFalse(BILLING["out_of_credits"])  # a call that works clears it
 
     def test_tavily(self):
         old = research.TAVILY_URL

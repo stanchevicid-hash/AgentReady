@@ -23,13 +23,14 @@ PHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Safari/604.1"
 
 class Client:
     def __init__(self, base, ua):
-        self.base, self.ua, self.cookie, self.host = base, ua, "", None
+        self.base, self.ua, self.cookie, self.host, self.origin = base, ua, "", None, None
 
     def call(self, method, path, body=None):
         req = urllib.request.Request(self.base + path, method=method,
                                      data=None if body is None else json.dumps(body).encode(),
                                      headers={"Content-Type": "application/json", "User-Agent": self.ua,
-                                              "Cookie": self.cookie, **({"Host": self.host} if self.host else {})})
+                                              "Cookie": self.cookie, **({"Host": self.host} if self.host else {}),
+                                              **({"Origin": self.origin} if self.origin else {})})
         try:
             with urllib.request.urlopen(req) as r:
                 status, headers, raw = r.status, r.headers, r.read()
@@ -107,6 +108,16 @@ class ServerTests(unittest.TestCase):
         with urllib.request.urlopen(self.base + "/") as r:
             self.assertEqual(r.headers.get("X-Frame-Options"), "DENY")
             self.assertIn("frame-ancestors 'none'", r.headers.get("Content-Security-Policy", ""))
+        # another website can't make this browser create accounts or change anything (CSRF)
+        req = urllib.request.Request(self.base + "/api/auth/signup", method="POST", data=b'{"username":"x@y.z","password":"12345678"}',
+                                     headers={"Content-Type": "text/plain"})
+        with self.assertRaises(urllib.error.HTTPError) as e:
+            urllib.request.urlopen(req)
+        self.assertEqual(e.exception.code, 403)
+        e.exception.close()
+        evil = Client(self.base, PC)
+        evil.origin = "http://evil.example"
+        self.assertEqual(evil.call("POST", "/api/auth/signup", {"username": "x@y.z", "password": "12345678"})[0], 403)
         # stopping someone's run needs it to exist (and be yours)
         self.assertEqual(pc.call("POST", "/api/runs/nope/cancel", {})[0], 404)
 

@@ -107,6 +107,11 @@ def extract_json(text: str):
     raise LLMError("model reply did not contain valid JSON")
 
 
+# Whether the last Token Factory call failed because the account has no credits (HTTP 402).
+# Set and cleared by real calls only, so showing it in the app costs nothing.
+BILLING = {"out_of_credits": False, "since": 0.0}
+
+
 class TokenFactoryLLM:
     """Routes each call to the Nemotron model assigned to its role (nano/super/ultra)."""
 
@@ -209,6 +214,7 @@ class TokenFactoryLLM:
                 usage = data.get("usage") or {}
                 pt, ct = int(usage.get("prompt_tokens", 0)), int(usage.get("completion_tokens", 0))
                 self.usage.add(role, pt, ct, time.time() - started)
+                BILLING["out_of_credits"] = False
                 choice = (data.get("choices") or [{}])[0]
                 content = strip_reasoning((choice.get("message") or {}).get("content") or "")
                 if not content and choice.get("finish_reason") == "length" and attempt < retries - 1:
@@ -222,6 +228,8 @@ class TokenFactoryLLM:
                         402: "the Token Factory account is out of credits: top up at tokenfactory.nebius.com"}.get(exc.code)
                 last_err = LLMError(f"{model}: HTTP {exc.code}: {hint or body}")
                 self.usage.add(role, 0, 0, time.time() - started, error=True)
+                if exc.code == 402:
+                    BILLING.update(out_of_credits=True, since=time.time())
                 if exc.code in (400, 401, 402, 403, 404):  # retrying can't fix these
                     break
             except Exception as exc:  # timeouts, connection resets

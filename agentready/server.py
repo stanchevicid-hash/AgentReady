@@ -23,7 +23,7 @@ from . import verify as verify_mod
 from .auth import SESSION_DAYS, Auth
 from .badge import badge_svg
 from .config import ROOT, ROLE_DESCRIPTIONS, Settings
-from .llm import TokenFactoryLLM
+from .llm import BILLING, TokenFactoryLLM
 from .pipeline import STAGES, Pipeline, RunOptions
 
 WEB = ROOT / "web"
@@ -155,6 +155,15 @@ class Handler(BaseHTTPRequestHandler):
             return True
         return (record.get("owner") or self.auth.owner()) == me["user"]
 
+    def _cross_site(self) -> bool:
+        """A request another website made the browser send (CSRF). Our pages always send JSON from their own
+        origin; a form on another site can't set that content type, and browsers name the real Origin."""
+        origin = self.headers.get("Origin")
+        # behind a proxy (Nebius endpoint) the public host comes as X-Forwarded-Host; another site can't set it
+        if origin and urlparse(origin).netloc not in (self.headers.get("Host", ""), self.headers.get("X-Forwarded-Host", "")):
+            return True
+        return self.command == "POST" and not self.headers.get("Content-Type", "").startswith("application/json")
+
     def _token_ok(self) -> bool:
         # public demo only: starting things needs the shared access token
         token = os.environ.get("AGENTREADY_ACCESS_TOKEN")
@@ -204,6 +213,7 @@ class Handler(BaseHTTPRequestHandler):
             s = self.settings
             return self._json({
                 "version": __version__, "api_key_set": bool(s.api_key), "tavily_set": bool(s.tavily_key),
+                "out_of_credits": BILLING["out_of_credits"],
                 "models": s.models, "roles": ROLE_DESCRIPTIONS, "executor": s.executor,
                 "public": is_public(), "token_required": bool(os.environ.get("AGENTREADY_ACCESS_TOKEN")),
                 "examples": sorted(p.name for p in EXAMPLES.iterdir() if p.is_dir()) if EXAMPLES.exists() else [],
@@ -274,6 +284,8 @@ class Handler(BaseHTTPRequestHandler):
     # ------------------------------------------------------------ DELETE
     def do_DELETE(self):
         path = urlparse(self.path).path
+        if self._cross_site():
+            return self._json({"error": "cross-site request refused"}, 403)
         if is_public() and not os.environ.get("AGENTREADY_ACCESS_TOKEN"):
             return self._json({"error": "deleting is disabled on this public demo"}, 403)
         if not self._token_ok():
@@ -317,6 +329,8 @@ class Handler(BaseHTTPRequestHandler):
     # ------------------------------------------------------------ POST
     def do_POST(self):
         path = urlparse(self.path).path
+        if self._cross_site():
+            return self._json({"error": "cross-site request refused"}, 403)
         try:
             body = self._body()
         except (ValueError, json.JSONDecodeError):
@@ -415,8 +429,11 @@ class Handler(BaseHTTPRequestHandler):
         # which runs and checks are this account's: decided before the account (and maybe ownership) goes
         root = Path(self.settings.runs_dir)
         runs = [d for d in root.iterdir() if d.is_dir() and not d.name.startswith("_") and self._mine(self._load_run(d.name), me)]
-        checks = [f for f in self._verify_dir().glob("*.json")
-                  if self._mine(json.loads(f.read_text(encoding="utf-8")), me)]
+        mine = [(f, json.loads(f.read_text(encoding="utf-8"))) for f in self._verify_dir().glob("*.json")]
+        checks = [f for f, v in mine if self._mine(v, me)]
+        # a check still running would write its result back after the account is gone
+        if any(v.get("status") == "running" for f, v in mine if self._mine(v, me)):
+            return self._json({"error": "wait for the code check in progress to finish first"}, 409)
         try:
             self.auth.erase(user, str(body.get("password", "")), self._ip())
         except PermissionError as exc:
