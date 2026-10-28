@@ -8,7 +8,7 @@ Coding and Agentic Engineering
 
 ## Team
 
-George Cunup, Daniel Stancheivici, Andrei Dediu. Add the other two as team members on the Devpost project page; one of you submits as the Representative.
+George Cunup, Daniel Stanchevici, Andrei Dediu. Add the other two as team members on the Devpost project page; one of you submits as the Representative.
 
 ## Project name and tagline
 
