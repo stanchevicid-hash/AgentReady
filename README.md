@@ -4,7 +4,7 @@ AgentReady tells you whether AI coding agents can work in your repository, and w
 
 It plants small bugs in a copy of your code (ones your own tests catch), lets NVIDIA Nemotron coding agents try to fix them, and records every step they take. Then it works out what tripped them up, writes an `AGENTS.md` for those spots, and runs the same tasks again with it. You end up with a before and after score, a replay of every attempt and an instructions file you can commit.
 
-I built it for the Nebius x NVIDIA Global AI Hackathon (Coding and Agentic Engineering track). Every model call goes to NVIDIA Nemotron on Nebius Token Factory.
+We built it for the Nebius x NVIDIA Global AI Hackathon (Coding and Agentic Engineering track). Every model call goes to NVIDIA Nemotron on Nebius Token Factory.
 
 ![The intro screen: a real run replayed, before and after the new AGENTS.md](docs/screenshots/welcome.png)
 
@@ -201,6 +201,12 @@ The tests run offline against a scripted stand-in for the model. They cover JSON
 - Agents are non-deterministic. Use at least two attempts per task, and check whether the 95% intervals overlap before trusting a small difference.
 - The planted defects are small bugs in one place. They show whether agents can find their way around your repo and check their own work. They say little about building large features.
 - The score depends on the model under test (Nemotron Super by default).
+
+## Team
+
+- George Cunup
+- Daniel Stancheivici
+- Andrei Dediu
 
 ## License
 
