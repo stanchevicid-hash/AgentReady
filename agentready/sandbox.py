@@ -13,7 +13,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from .repo import base_env, run_cmd
+from .repo import base_env, run_cmd, strip_ansi
 
 # Cheap guard against obviously destructive commands. Real isolation comes from
 # the throwaway workspace, the docker runner, or a Nebius Serverless Job.
@@ -71,7 +71,7 @@ class DockerRunner:
         try:
             proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8",
                                   errors="replace", timeout=self.timeout)
-            return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+            return proc.returncode, strip_ansi((proc.stdout or "") + (proc.stderr or ""))
         except subprocess.TimeoutExpired:
             return 124, f"[timed out after {self.timeout}s]"
 

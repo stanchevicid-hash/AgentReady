@@ -141,16 +141,24 @@ def base_env(shim: Path, extra: dict | None = None) -> dict:
     return env
 
 
+_ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+
+
+def strip_ansi(text: str) -> str:
+    """Terminal colour codes (Python 3.14's unittest prints them) are noise to agents and in the app."""
+    return _ANSI.sub("", text)
+
+
 def run_cmd(cmd: str, cwd: Path, env: dict, timeout: int = 120) -> tuple[int, str]:
     try:
         proc = subprocess.run(
             cmd, cwd=str(cwd), env=env, shell=True, capture_output=True,
             text=True, encoding="utf-8", errors="replace", timeout=timeout,
         )
-        return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+        return proc.returncode, strip_ansi((proc.stdout or "") + (proc.stderr or ""))
     except subprocess.TimeoutExpired as exc:
         out = (exc.stdout or "") if isinstance(exc.stdout, str) else ""
-        return 124, out + f"\n[timed out after {timeout}s]"
+        return 124, strip_ansi(out) + f"\n[timed out after {timeout}s]"
 
 
 def _tests_ran(output: str) -> bool:

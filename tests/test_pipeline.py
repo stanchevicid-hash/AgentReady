@@ -38,6 +38,11 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(act["args"]["old"], "x = 1" + nl + "y = 2")
         self.assertIn("\\d+", act["args"]["new"])
 
+    def test_colour_codes_are_stripped(self):
+        from agentready.repo import strip_ansi
+        esc = chr(27)
+        self.assertEqual(strip_ansi(esc + "[32m." + esc + "[0m" + esc + "[31mE" + esc + "[0m ok"), ".E ok")
+
     def test_wilson(self):
         lo, hi = wilson(5, 10)
         self.assertTrue(0.2 < lo < 0.5 < hi < 0.8)
