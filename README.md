@@ -205,7 +205,7 @@ The tests run offline against a scripted stand-in for the model. They cover JSON
 ## Team
 
 - George Cunup
-- Daniel Stancheivici
+- Daniel Stanchevici
 - Andrei Dediu
 
 ## License
