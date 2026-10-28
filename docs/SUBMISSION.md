@@ -56,18 +56,20 @@ Defect injectors for JavaScript, TypeScript and Go, a GitHub App that runs Agent
 
 ## 3-minute video script
 
+Read at a calm pace: about 2:50. Numbers are from the real 5 tasks x 2 attempts run on parcelpost
+(20261027-161147-3c0e). If the re-run gives different numbers, say the new ones: never edit them.
+
 | Time | On screen | Voice-over |
 |---|---|---|
-| 0:00-0:15 | The intro screen with the replayed run | "Coding agents spend a lot of their steps just figuring out how a repo works. AgentReady measures how much, in your repo." |
-| 0:15-0:40 | Start the parcelpost demo; stages light up; tasks appear | "It plants small bugs that the repo's own tests catch. Nemotron Super writes a bug report for each one, without saying where the bug is." |
-| 0:40-1:10 | Agent lanes filling live, red failed steps | "Nemotron Super agents work on every task in parallel, each in its own sandbox, through Nebius Token Factory. Each mark is one step. The red ones are commands that failed, like pytest: the README says pytest, but this repo uses unittest." |
-| 1:10-1:35 | Open one failed replay | "In this replay the agent follows the README, runs pytest, and the imports fail because the code lives under src. Nemotron Nano labels every attempt like this one." |
-| 1:35-2:00 | Causes tab, then the AGENTS.md tab | "Nemotron Ultra reads all of those labels and writes an AGENTS.md. The test command in it is one AgentReady actually ran, and the doc links come from Tavily." |
-| 2:00-2:30 | Improved lanes, then the Overview tab | "Then the same tasks again, with the new file. The runs are shorter and more of them pass. The score comes with a 95% interval, so you can tell a real change from luck." |
-| 2:30-2:50 | Verifier with the sample snippet | "It also checks code an assistant wrote. This snippet imports a package that doesn't exist and has an API key in it." |
-| 2:50-3:00 | Download AGENTS.md | "The AGENTS.md is a normal file you can commit. AgentReady is open source." |
-
-Record with real numbers from a real run; do not edit them.
+| 0:00-0:15 | Sign-in screen, then the Tester tab | "AI coding agents now write a lot of our code. But in a real repository they waste most of their steps just figuring out how the project works. We built AgentReady to measure that, fix it, and prove the fix with numbers." |
+| 0:15-0:35 | Paste the parcelpost demo, press Test this repo, stages light up | "You give it a repository. AgentReady plants small, real bugs that the project's own tests catch. Nemotron 3 Super, running on Nebius Token Factory, writes a bug report for each one, the way a user would, without saying where the bug is." |
+| 0:35-1:00 | Attempts tab, lanes filling live | "Then a team of Nemotron Super agents tries to fix every bug in parallel, each in its own sandbox. Every mark is one step. Red marks are failed commands: the README says pytest, but this repo uses unittest, so the agents get lost." |
+| 1:00-1:20 | Open one failed replay | "Here is a replay. The agent trusts the outdated README and burns its steps. Nemotron 3 Nano reviews every attempt like this and labels what went wrong." |
+| 1:20-1:45 | Causes tab, then AGENTS.md tab | "Nemotron 3 Ultra reads all those labels, finds the root causes, and writes an AGENTS.md. It is grounded in the test command AgentReady actually ran, and in official docs that Tavily found." |
+| 1:45-2:10 | Overview tab: rings and bars | "Then the exact same bugs, the same model, only with the new file. Solved tasks went from 7 out of 10 to 10 out of 10, and the score from 62 to 93. Every number comes with a 95% interval, so you can tell a real change from luck." |
+| 2:10-2:35 | Verifier: open bad-change.patch, result | "AgentReady also checks code an AI assistant wrote. This change imports a package that doesn't exist, uses eval, and breaks the tests. AgentReady applies it in a sandbox, runs the real test suite, and Nemotron reviews the diff. Verdict: do not merge." |
+| 2:35-2:50 | Phone: scan the QR, the app opens, a notice from the PC appears | "It works on your computer and on your phone. Scan a QR code and the phone is signed in. Start a check on one device, and the other one knows." |
+| 2:50-3:00 | GitHub page | "AgentReady is open source and runs on Nebius. Make your repo work for the agents that work on it." |
 
 ## Feedback on Nebius and NVIDIA (fill in from your own experience)
 
