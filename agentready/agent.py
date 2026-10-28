@@ -215,7 +215,8 @@ def run_episode(llm, task, workspace: Path, runner, instructions: dict, conditio
         except Exception:
             consecutive_bad += 1
             cut = ct >= STEP_TOKENS * 0.95
-            step = Step(n, "", "invalid", {}, "Your reply was cut off because it was too long. Use a short "
+            # keep what the model actually said, so a replay shows why the step was rejected
+            step = Step(n, "", "invalid", {"reply": reply[:800]}, "Your reply was cut off because it was too long. Use a short "
                         "`replace` edit instead of rewriting a whole file." if cut else
                         "Your reply was not a single valid JSON action.", ok=False)
             ep.steps.append(step)
@@ -232,6 +233,7 @@ def run_episode(llm, task, workspace: Path, runner, instructions: dict, conditio
         args = act.get("args") or {}
         if not isinstance(args, dict):
             args = {}
+        args = {str(k).strip().rstrip(":").strip(): v for k, v in args.items()}  # models sometimes write "content:"
         thought = str(act.get("thought", ""))
         ok = True
         if action == "finish":

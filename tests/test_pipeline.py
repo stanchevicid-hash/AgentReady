@@ -27,6 +27,17 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(extract_json('<think>hmm {"x":2}</think> sure: {"a": "}"}'), {"a": "}"})
         self.assertEqual(strip_reasoning("<think>x</think>hello"), "hello")
 
+    def test_extract_json_code_inside_strings(self):
+        # what agents send when they edit code: raw newlines and regex backslashes inside JSON strings.
+        # Strict json.loads rejects the whole object and the old parser fell back to the inner "args".
+        nl = chr(10)
+        raw = '{"thought": "fix", "action": "replace", "args": {"path": "a.py", "old": "x = 1' + nl + \
+              'y = 2", "new": "pat = re.compile(r\'\\d+\')' + nl + '"}}'
+        act = extract_json(raw)
+        self.assertEqual(act["action"], "replace")
+        self.assertEqual(act["args"]["old"], "x = 1" + nl + "y = 2")
+        self.assertIn("\\d+", act["args"]["new"])
+
     def test_wilson(self):
         lo, hi = wilson(5, 10)
         self.assertTrue(0.2 < lo < 0.5 < hi < 0.8)

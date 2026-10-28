@@ -64,7 +64,7 @@ With `AGENTREADY_EXECUTOR=nebius`, every agent attempt runs as its own Nebius Se
 You need Python 3.9 or newer and git. There are no pip packages to install; AgentReady uses only the standard library.
 
 ```bash
-git clone https://github.com/<you>/AgentReady.git
+git clone https://github.com/stanchevicid-hash/AgentReady.git
 cd AgentReady
 cp .env.example .env          # Windows: copy .env.example .env
 # put NEBIUS_API_KEY (and optionally TAVILY_API_KEY) in .env
@@ -146,7 +146,7 @@ Settings, "Delete all my data" removes your runs, checks, account and devices af
 
 ## Deploying on Nebius
 
-The endpoint and the jobs use the same image. GitHub Actions builds it on every push to `main` and publishes it as `ghcr.io/<owner>/agentready:latest` (`.github/workflows/image.yml`), so you don't need Docker on your machine. Make the package public once, under Packages on GitHub. To build it yourself instead:
+The endpoint and the jobs use the same image. GitHub Actions builds it on every push to `main` and publishes it as `ghcr.io/stanchevicid-hash/agentready:latest` (`.github/workflows/image.yml`), so you don't need Docker on your machine. Make the package public once, under Packages on GitHub. To build it yourself instead:
 
 ```bash
 docker build -t <registry>/agentready:latest .
@@ -156,7 +156,7 @@ docker push <registry>/agentready:latest
 The dashboard as a Serverless Endpoint:
 
 ```bash
-nebius ai endpoint create --name agentready --image ghcr.io/<owner>/agentready:latest \
+nebius ai endpoint create --name agentready --image ghcr.io/stanchevicid-hash/agentready:latest \
   --platform cpu-d3 --preset 4vcpu-16gb --container-port 8080 --public \
   --env NEBIUS_API_KEY=<key> --env TAVILY_API_KEY=<key> \
   --env AGENTREADY_PUBLIC_DEMO=1 --env AGENTREADY_ACCESS_TOKEN=<token-for-judges>
