@@ -6,6 +6,10 @@ Everything below is in English, as the rules require. Replace the `<...>` placeh
 
 Coding and Agentic Engineering
 
+## Team
+
+George Cunup, Daniel Stancheivici, Andrei Dediu. Add the other two as team members on the Devpost project page; one of you submits as the Representative.
+
 ## Project name and tagline
 
 AgentReady: find out where AI coding agents get stuck in your repo, and check whether new instructions help.
@@ -21,8 +25,8 @@ On the demo repo, the README told agents to run pytest (the project uses unittes
 
 There is also a Verifier for code an assistant wrote. You paste code or a diff, with or without the repository, and it checks for packages that don't exist on PyPI, eval and shell=True, swallowed errors and keys in the code. With the repository it also applies the change and runs the tests. The app installs on a PC or a phone, each account sees only its own history, and it runs on your own server without tracking.
 
-### Why I built it
-Agents waste a lot of their steps working out how a repository is set up: which test command to run, which README still matches the code, where a module went. People write instruction files to help with that, but there is no easy way to see whether those files make a difference. Benchmarks such as SWE-bench compare models across many repositories. I wanted something that looks at a single repository and shows, with numbers, what an instruction file changes there.
+### Why we built it
+Agents waste a lot of their steps working out how a repository is set up: which test command to run, which README still matches the code, where a module went. People write instruction files to help with that, but there is no easy way to see whether those files make a difference. Benchmarks such as SWE-bench compare models across many repositories. We wanted something that looks at a single repository and shows, with numbers, what an instruction file changes there.
 
 ### How it works
 - Defects are injected with Python's ast module and each one is checked against the real test suite, so every task can be graded.
