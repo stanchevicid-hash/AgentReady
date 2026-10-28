@@ -21,7 +21,7 @@ AgentReady measures how well coding agents work in one particular repository. It
 
 Nemotron 3 Nano reads every attempt and labels why it failed: the agent got lost, couldn't find the test command, trusted an out-of-date README, and so on. Tavily looks up the official docs of the repo's tools, and Nemotron 3 Ultra turns all of that into an AGENTS.md. The same tasks then run again with the new file. The report shows the score before and after, the success rate with a 95% interval, steps and tokens per solved task, and a replay of every agent step.
 
-On the demo repo, the README told agents to run pytest (the project uses unittest), never mentioned that the code lives under src/, and pointed to two files that were renamed long ago. The AGENTS.md that AgentReady wrote addressed all three. The score went from 53 to 93 and agents needed 13.7 steps per task instead of 18.3.
+On the demo repo, the README told agents to run pytest (the project uses unittest), never mentioned that the code lives under src/, and pointed to two files that were renamed long ago. The AGENTS.md that AgentReady wrote addressed all three. Tasks solved went from 7/10 to 10/10, the score from 62 to 93, and agents needed 13.2 steps per attempt instead of 19.1 (run 20261027-161147-3c0e, 5 tasks x 2 attempts, shipped in showcase/).
 
 There is also a Verifier for code an assistant wrote. You paste code or a diff, with or without the repository, and it checks for packages that don't exist on PyPI, eval and shell=True, swallowed errors and keys in the code. With the repository it also applies the change and runs the tests. The app installs on a PC or a phone, each account sees only its own history, and it runs on your own server without tracking.
 
@@ -33,7 +33,7 @@ Agents waste a lot of their steps working out how a repository is set up: which 
 - The agent under test is a small tool-using agent (list, read, search, edit, run, finish) driven by Nemotron 3 Super through Token Factory's OpenAI-compatible API.
 - Before grading, the original test files are restored, so editing a test never counts as a fix.
 - Each Nemotron model does the job it suits: Nano labels hundreds of attempts, Super does the multi-step tool use, Ultra makes the one or two calls that need the most reasoning.
-- Attempts run in parallel on the host, in Docker containers without network, or as Nebius Serverless Jobs, one job per attempt. The dashboard is a container that runs as a Nebius Serverless Endpoint.
+- Attempts run in parallel on the host, in Docker containers without network, or as Nebius Serverless Jobs, one job per attempt. The app is one container that can run as a Nebius Serverless Endpoint; the public demo is hosted on Render's free tier.
 - It uses only Python's standard library, so it runs wherever Python 3.9 does.
 
 ### Challenges
