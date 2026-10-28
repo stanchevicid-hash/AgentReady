@@ -12,6 +12,7 @@ WORKDIR /app
 COPY agentready ./agentready
 COPY web ./web
 COPY examples ./examples
+COPY showcase ./showcase
 
 ENV PYTHONUNBUFFERED=1 \
     AGENTREADY_RUNS_DIR=/data/runs
