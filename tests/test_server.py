@@ -174,5 +174,17 @@ class InterruptedRunTests(unittest.TestCase):
         self.assertEqual(json.loads((root / "b" / "run.json").read_text())["status"], "done")
 
 
+class ShowcaseTests(unittest.TestCase):
+    def test_recorded_run_is_seeded_once(self):
+        runs = Path(tempfile.mkdtemp())
+        server.seed_showcase(runs)
+        seeded = [p.name for p in runs.iterdir()]
+        self.assertTrue(seeded)
+        self.assertTrue(all((runs / n / "run.json").is_file() for n in seeded))
+        (runs / seeded[0] / "marker").write_text("kept")
+        server.seed_showcase(runs)  # never overwrites what is already there
+        self.assertTrue((runs / seeded[0] / "marker").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

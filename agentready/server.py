@@ -562,9 +562,22 @@ def _lan_ip() -> str:
         return "<this-computer's-ip>"
 
 
+def seed_showcase(runs_dir: Path) -> None:
+    """Copy the recorded runs in showcase/ into an empty-of-them runs folder, so a fresh hosted
+    demo (whose disk starts empty) shows real results before anyone starts a run."""
+    src = ROOT / "showcase"
+    if not src.is_dir():
+        return
+    for run in src.iterdir():
+        dest = runs_dir / run.name
+        if (run / "run.json").is_file() and not dest.exists():
+            shutil.copytree(run, dest)
+
+
 def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = False) -> None:
     settings = Settings.from_env()
     Path(settings.runs_dir).mkdir(parents=True, exist_ok=True)
+    seed_showcase(Path(settings.runs_dir))
     mark_interrupted(Path(settings.runs_dir))
     Handler.settings = settings
     Handler.auth = Auth(Path(settings.runs_dir) / "_auth")

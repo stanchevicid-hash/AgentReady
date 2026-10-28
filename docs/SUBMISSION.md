@@ -1,6 +1,6 @@
 # Devpost submission kit
 
-Everything below is in English, as the rules require. Replace the `<...>` placeholders.
+Everything below is in English, as the rules require.
 
 ## Track
 
@@ -43,14 +43,14 @@ Every task had to be gradeable without a human, which is why only defects the te
 Defect injectors for JavaScript, TypeScript and Go, a GitHub App that runs AgentReady on pull requests that touch docs, and a public table of results for well-known open-source projects.
 
 ## Links
-- Demo: `<https://your-endpoint-url>` (access token for starting runs: `<token>`; viewing runs needs no token)
-- Video: `<YouTube URL>`
-- Code: `<https://github.com/you/AgentReady>` (MIT license)
+- Demo: https://agentready-wqsy.onrender.com (free hosting: if it was idle, the first load takes about a minute. Viewing needs no login; starting a run needs the access token given in the Devpost testing instructions)
+- Video: https://www.youtube.com/watch?v=zTlKXo-zo5M
+- Code: https://github.com/stanchevicid-hash/AgentReady (MIT license)
 
 ## Testing instructions for judges
-1. Open the demo URL. The first page explains the project and replays a real run. Click "Open AgentReady"; finished runs are listed under Recent on the Tester page and in History. `Ctrl+K` jumps to any page or run.
+1. Open https://agentready-wqsy.onrender.com (wait about a minute if the free server was asleep). The first page explains the project and replays a real run. Click "Open AgentReady"; finished runs are listed under Recent on the Tester page and in History. `Ctrl+K` jumps to any page or run.
 2. A run has five tabs. Overview has the score before and after with 95% ranges. Attempts lists every agent attempt; click one to replay its steps. Causes has Nemotron Ultra's root causes and Nano's labels. AGENTS.md shows the old and new file. Tasks & log has the rest. "PDF / print" saves the report.
-3. To start a run, click "Try the parcelpost demo", then "Test this repo", and enter the access token. The page updates live. "Stop" ends it early and "Run again" repeats it with the same settings.
+3. To start a run, click "Try the parcelpost demo", then "Test this repo", and enter the access token from the Devpost testing instructions. The page updates live. "Stop" ends it early and "Run again" repeats it with the same settings.
 4. Verifier: click "Try AI-written code", then Verify. No repository is needed. To see the tests run as well, paste `docs/sample-patches/bad-change.patch` and use `example:parcelpost` as the repository.
 5. Locally: README "Quick start" (Python 3.9+, no pip installs). The app installs on a phone (PWA) and pairs with the PC by QR code.
 
