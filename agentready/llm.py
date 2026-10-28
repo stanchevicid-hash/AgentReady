@@ -70,6 +70,22 @@ def strip_reasoning(text: str) -> str:
     return text.strip()
 
 
+_BAD_ESCAPE = re.compile(r'\\(?!["\\/bfnrtu])')
+
+
+def _loads_lenient(s: str):
+    """json.loads, forgiving the two mistakes models make when they put code inside a JSON string:
+    raw newlines/tabs (strict=False) and backslashes JSON doesn't know, like the \\d of a regex."""
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        pass
+    try:
+        return json.loads(s, strict=False)
+    except json.JSONDecodeError:
+        return json.loads(_BAD_ESCAPE.sub(r"\\\\", s), strict=False)
+
+
 def extract_json(text: str):
     """Pull the first JSON object/array out of a model reply (handles ```json fences)."""
     text = strip_reasoning(text)
@@ -100,7 +116,7 @@ def extract_json(text: str):
                         depth -= 1
                         if depth == 0:
                             try:
-                                return json.loads(cand[start : i + 1])
+                                return _loads_lenient(cand[start : i + 1])
                             except json.JSONDecodeError:
                                 break
                 start = cand.find(opener, start + 1)
@@ -216,7 +232,11 @@ class TokenFactoryLLM:
                 self.usage.add(role, pt, ct, time.time() - started)
                 BILLING["out_of_credits"] = False
                 choice = (data.get("choices") or [{}])[0]
-                content = strip_reasoning((choice.get("message") or {}).get("content") or "")
+                msg = choice.get("message") or {}
+                content = strip_reasoning(msg.get("content") or "")
+                if not content and choice.get("finish_reason") != "length":
+                    # some reasoning endpoints leave content empty and put the whole answer in the reasoning field
+                    content = (msg.get("reasoning_content") or msg.get("reasoning") or "").strip()
                 if not content and choice.get("finish_reason") == "length" and attempt < retries - 1:
                     # A reasoning model spent the whole budget thinking: give it more room once.
                     payload["max_tokens"] = min(int(payload["max_tokens"]) * 2, 16000)
